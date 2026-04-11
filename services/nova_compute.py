@@ -24,7 +24,7 @@ def install_pkgs():
 
 def conf_nova_compute(config):
       
-    virt_type = get(config, "NOVA_COMPUTE_VIRT_TYPE")
+    virt_type = get(config, "compute.NOVA_COMPUTE_VIRT_TYPE")
 
     set_conf_option(nova_compute_conf, "libvirt", "virt_type", virt_type)
 
@@ -54,10 +54,10 @@ def create_default_flavors(config):
      
     print()
     
-    ip_address = get(config, "HOST_IP")
+    ip_address = get(config, "network.HOST_IP")
 
-    admin_password = get(config, "ADMIN_PASSWORD")
-    demo_password = get(config, "DEMO_PASSWORD")
+    admin_password = get(config, "passwords.ADMIN_PASSWORD")
+    demo_password = get(config, "passwords.DEMO_PASSWORD")
      
     os.environ["OS_USERNAME"] = "admin"
     os.environ["OS_PASSWORD"] = admin_password

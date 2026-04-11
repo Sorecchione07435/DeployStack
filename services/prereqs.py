@@ -6,7 +6,7 @@ from ..utils import colors
 import subprocess
 
 def set_openstack_release(config):
-    release = get(config, "OPENSTACK_RELEASE", "caracal")
+    release = get(config, "openstack.OPENSTACK_RELEASE", "caracal")
     message = f"Adding repository for {release} OpenStack Release..."
     cmd = ["add-apt-repository", f"cloud-archive:{release}", "-y"]
 
@@ -30,7 +30,7 @@ def add_rabbitmq_openstack_user(config):
      
     print()
 
-    rabbitmq_password = get(config, "RABBITMQ_PASSWORD")
+    rabbitmq_password = get(config, "passwords.RABBITMQ_PASSWORD")
 
     try:
         output = subprocess.check_output(["rabbitmqctl", "list_users"], text=True)

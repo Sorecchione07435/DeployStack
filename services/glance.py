@@ -25,10 +25,10 @@ def install_pkgs():
 
 def conf_glance(config):
       
-    db_password = get(config, "DATABASE_PASSWORD")
-    service_password = get(config, "SERVICE_PASSWORD")
+    db_password = get(config, "passwords.DATABASE_PASSWORD")
+    service_password = get(config, "passwords.SERVICE_PASSWORD")
 
-    ip_address = get(config, "HOST_IP")
+    ip_address = get(config, "network.HOST_IP")
       
     set_conf_option(glance_conf, "database", "connection", f"mysql+pymysql://glance:{db_password}@{ip_address}/glance")
 
@@ -71,10 +71,10 @@ def upload_cirros_image(config):
 
     print()
 
-    ip_address = get(config, "HOST_IP")
+    ip_address = get(config, "network.HOST_IP")
 
-    admin_password = get(config, "ADMIN_PASSWORD")
-    demo_password = get(config, "DEMO_PASSWORD")
+    admin_password = get(config, "passwords.ADMIN_PASSWORD")
+    demo_password = get(config, "passwords.DEMO_PASSWORD")
 
     os.environ["OS_USERNAME"] = "admin"
     os.environ["OS_PASSWORD"] = admin_password
@@ -90,14 +90,8 @@ def upload_cirros_image(config):
     download_result = run_command_sync([ "wget", "-O", image_file_path, cirros_image_url])
 
     if not download_result:
-        print("download failed")
         return False
     
-    #check_image_cmd = ["openstack", "image", "show", image_name]
-    #image_exists = run_command(check_image_cmd)
-
-    #if not image_exists:
-
     run_command_sync(["openstack", "image", "delete", "cirros"])
 
     create_cirros_image_cmd = [
@@ -109,7 +103,7 @@ def upload_cirros_image(config):
         "--visibility", "public"
     ]
 
-    create_image_result = run_command(create_cirros_image_cmd, f"Adding the cirros image...")
+    create_image_result = run_command(create_cirros_image_cmd, f"Adding cirros image...")
 
     if not create_image_result:
         return False

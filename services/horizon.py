@@ -15,7 +15,7 @@ apache_conf = "/etc/apache2/conf-enabled/openstack-dashboard.conf"
 def install_pkgs():
     apt_update()
     packages = ["openstack-dashboard"]
-    success = apt_install(packages, ux_text=f"Installing Horizon package...")
+    success = apt_install(packages, ux_text=f"Installing OpenStack Dashboard package...")
     if not success:
         return False
     return True
@@ -45,7 +45,7 @@ def set_memcached(settings_file="/etc/openstack-dashboard/local_settings.py", ho
 
 
 def conf_horizon(config):
-    ip_address = get(config, "HOST_IP")
+    ip_address = get(config, "network.HOST_IP")
 
     settings_to_set = {
 

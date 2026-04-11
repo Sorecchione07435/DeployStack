@@ -365,7 +365,7 @@ def launch(
     if password_enabled and password:
         print_summary(name, fip, key_path, True, os_admin_user, password, os_type)
     elif  "cirros" in image_name:
-         print_summary(name, fip, key_path, False, "cirros", None, os_type)
+         print_summary(name, fip, key_path, False, "cirros", None, "linux")
     else:
          print_summary(name, fip, key_path, False, os_admin_user, None, os_type)
     

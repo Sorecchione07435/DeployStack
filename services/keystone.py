@@ -16,7 +16,6 @@ def install_pkgs():
     packages = ["keystone", "apache2"]
 
     success =  apt_install(packages, ux_text=f"Installing Keystone packages...")
-
     if not success:
             return False
     return True
@@ -25,10 +24,10 @@ def conf_keystone(config):
 
     print()
       
-    db_password = get(config, "DATABASE_PASSWORD")
-    ip_address = get(config, "HOST_IP")
+    db_password = get(config, "passwords.DATABASE_PASSWORD")
+    ip_address = get(config, "network.HOST_IP")
 
-    admin_password = get(config, "ADMIN_PASSWORD")
+    admin_password = get(config, "passwords.ADMIN_PASSWORD")
 
     identity_url = f"http://{ip_address}:5000/v3/"
 
@@ -95,10 +94,10 @@ def create_projects_and_demo_user(config):
 
     print()
 
-    ip_address = get(config, "HOST_IP")
+    ip_address = get(config, "network.HOST_IP")
 
-    admin_password = get(config, "ADMIN_PASSWORD")
-    demo_password = get(config, "DEMO_PASSWORD")
+    admin_password = get(config, "passwords.ADMIN_PASSWORD")
+    demo_password = get(config, "passwords.DEMO_PASSWORD")
 
     os.environ["OS_USERNAME"] = "admin"
     os.environ["OS_PASSWORD"] = admin_password
@@ -115,32 +114,18 @@ def create_projects_and_demo_user(config):
     if not create_service_project_cmd_result:
          return False
     
-    create_demo_project_cmd = ["openstack", "project", "create", "--domain", "default", "--description", "Demo Project", "demo", "--or-show"]
+    create_demo_user_cmds = [""
+        'openstack project create --domain default --description "Demo Project" demo --or-show',
+        f"openstack user create --domain default --password {demo_password} demo --or-show",
+        "openstack role create user --or-show",
+        "openstack role add --project demo --user demo user"    
+    ]
 
-    create_demo_project_cmd_result = run_command(create_demo_project_cmd, "Creating demo project...")
-
-    if not create_demo_project_cmd_result:
-         return False
+    full_create_demo_user_cmds = " && ".join(create_demo_user_cmds)
     
-    create_demo_user_cmd = ["openstack", "user", "create", "--domain", "default", "--password", demo_password, "demo", "--or-show"]
+    full_create_demo_user_cmds_result = run_command(["bash", "-c", full_create_demo_user_cmds], "Creating User role and demo user...")
 
-    create_demo_user_cmd_result = run_command(create_demo_user_cmd, "Creating demo user...")
-
-    if not create_demo_user_cmd_result:
-         return False
-
-    creare_role_user_cmd = ["openstack", "role", "create", "user", "--or-show"]
-
-    creare_role_user_cmd_result = run_command(creare_role_user_cmd, "Creating user role...")
-
-    if not creare_role_user_cmd_result:
-         return False
-    
-    assign_user_role_demo_cmd = ["openstack", "role", "add", "--project", "demo", "--user", "demo", "user"]
-
-    assign_user_role_demo_cmd_result = run_command(assign_user_role_demo_cmd, "Assigning the user role to the demo user...")
-
-    if not assign_user_role_demo_cmd_result:
+    if not full_create_demo_user_cmds_result:
          return False
     
     return True
@@ -148,8 +133,8 @@ def create_projects_and_demo_user(config):
 def create_services_users(config):
     print()
 
-    service_password = get(config, "SERVICE_PASSWORD")
-    install_cinder = get(config, "INSTALL_CINDER", "no").lower() == "yes"
+    service_password = get(config, "passwords.SERVICE_PASSWORD")
+    install_cinder = get(config, "cinder.INSTALL_CINDER", "no").lower() == "yes"
 
     services_user_create_cmds = [
         f"openstack user create --domain default --password {service_password} glance --or-show",
@@ -198,8 +183,8 @@ def create_services_users(config):
     return True
 
 def create_services_endpoints(config):
-    ip_address = get(config, "HOST_IP")
-    install_cinder = get(config, "INSTALL_CINDER", "no").lower() == "yes"
+    ip_address = get(config, "network.HOST_IP")
+    install_cinder = get(config, "cinder.INSTALL_CINDER", "no") == "yes"
 
     def ep(service, interface, url):
         check = (
@@ -253,10 +238,10 @@ def create_services_endpoints(config):
 
 def generate_environment_cli_scripts(config):
      
-    ip_address = get(config, "HOST_IP")
+    ip_address = get(config, "network.HOST_IP")
 
-    admin_password = get(config, "ADMIN_PASSWORD")
-    demo_password = get(config, "DEMO_PASSWORD")
+    admin_password = get(config, "passwords.ADMIN_PASSWORD")
+    demo_password = get(config, "passwords.DEMO_PASSWORD")
      
     admin_openrc_content=f"""
 export OS_PROJECT_DOMAIN_NAME=Default

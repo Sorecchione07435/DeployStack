@@ -23,12 +23,12 @@ def conf_placement(config):
 
     print()
 
-    db_password = get(config, "DATABASE_PASSWORD")
-    rabbitmq_password = get(config, "RABBITMQ_PASSWORD")
+    db_password = get(config, "passwords.DATABASE_PASSWORD")
+    rabbitmq_password = get(config, "passwords.RABBITMQ_PASSWORD")
 
-    service_password = get(config, "SERVICE_PASSWORD")
+    service_password = get(config, "passwords.SERVICE_PASSWORD")
 
-    ip_address = get(config, "HOST_IP")
+    ip_address = get(config, "network.HOST_IP")
       
     set_conf_option(placement_conf, "keystone_authtoken", "www_authenticate_uri", f"http://{ip_address}:5000/")
     set_conf_option(placement_conf, "keystone_authtoken", "auth_url", f"http://{ip_address}:5000/")

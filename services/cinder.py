@@ -56,10 +56,10 @@ def conf_lvm(config):
     cinder_conf_path = "/etc/tgt/conf.d/cinder.conf"
     line = "include /var/lib/cinder/volumes/*\n"
       
-    lvm_image_file_path = get(config, "CINDER_VOLUME_LVM_IMAGE_FILE_PATH")
-    lvm_loop_dev = get(config, "CINDER_VOLUME_LVM_PHYSICAL_PV_LOOP_NAME")
+    lvm_image_file_path = get(config, "cinder.CINDER_VOLUME_LVM_IMAGE_FILE_PATH")
+    lvm_loop_dev = get(config, "cinder.CINDER_VOLUME_LVM_PHYSICAL_PV_LOOP_NAME")
 
-    lvm_image_size_in_gb = get(config, "CINDER_VOLUME_LVM_IMAGE_SIZE_IN_GB")
+    lvm_image_size_in_gb = get(config, "cinder.CINDER_VOLUME_LVM_IMAGE_SIZE_IN_GB")
 
     VG_NAME="cinder-volumes"
 
@@ -129,10 +129,10 @@ def setup_loopback_service(config):
 
     SERVICE_PATH = "/etc/systemd/system/cinder-loopback.service"
        
-    lvm_image_file_path = get(config, "CINDER_VOLUME_LVM_IMAGE_FILE_PATH")
-    lvm_loop_dev = get(config, "CINDER_VOLUME_LVM_PHYSICAL_PV_LOOP_NAME")
+    lvm_image_file_path = get(config, "cinder.CINDER_VOLUME_LVM_IMAGE_FILE_PATH")
+    lvm_loop_dev = get(config, "cinder.CINDER_VOLUME_LVM_PHYSICAL_PV_LOOP_NAME")
 
-    lvm_image_size_in_gb = get(config, "CINDER_VOLUME_LVM_IMAGE_SIZE_IN_GB")
+    lvm_image_size_in_gb = get(config, "cinder.CINDER_VOLUME_LVM_IMAGE_SIZE_IN_GB")
 
     VG_NAME="cinder-volumes"
 
@@ -167,12 +167,12 @@ def conf_cinder(config):
 
     print()
      
-    db_password = get(config, "DATABASE_PASSWORD")
-    rabbitmq_password = get(config, "RABBITMQ_PASSWORD")
+    db_password = get(config, "passwords.DATABASE_PASSWORD")
+    rabbitmq_password = get(config, "passwords.RABBITMQ_PASSWORD")
 
-    service_password = get(config, "SERVICE_PASSWORD")
+    service_password = get(config, "passwords.SERVICE_PASSWORD")
 
-    ip_address = get(config, "HOST_IP")
+    ip_address = get(config, "network.HOST_IP")
 
     set_conf_option(cinder_conf, "DEFAULT", "transport_url", f"rabbit://openstack:{rabbitmq_password}@{ip_address}:5672/")
     set_conf_option(cinder_conf, "DEFAULT", "glance_api_servers", f"http://{ip_address}:9292")

@@ -25,14 +25,14 @@ def conf_nova(config):
       
     print()
 
-    install_cinder = get(config, "INSTALL_CINDER", "no").lower() == "yes"
+    install_cinder = get(config, "cinder.INSTALL_CINDER", "no") == "yes"
 
-    database_password = get(config, "DATABASE_PASSWORD")
-    rabbitmq_password = get(config, "RABBITMQ_PASSWORD")
+    database_password = get(config, "passwords.DATABASE_PASSWORD")
+    rabbitmq_password = get(config, "passwords.RABBITMQ_PASSWORD")
 
-    service_password = get(config, "SERVICE_PASSWORD")
+    service_password = get(config, "passwords.SERVICE_PASSWORD")
 
-    ip_address = get(config, "HOST_IP")
+    ip_address = get(config, "network.HOST_IP")
 
     set_conf_option(nova_conf, "api_database", "connection", f"mysql+pymysql://nova:{database_password}@{ip_address}/nova_api")
     set_conf_option(nova_conf, "database", "connection", f"mysql+pymysql://nova:{database_password}@{ip_address}/nova")
@@ -131,8 +131,8 @@ def finalize():
 def add_default_keypair(config):
     print()
     
-    ip_address = get(config, "HOST_IP")
-    admin_password = get(config, "ADMIN_PASSWORD")
+    ip_address = get(config, "network.HOST_IP")
+    admin_password = get(config, "passwords.ADMIN_PASSWORD")
      
     os.environ["OS_USERNAME"] = "admin"
     os.environ["OS_PASSWORD"] = admin_password

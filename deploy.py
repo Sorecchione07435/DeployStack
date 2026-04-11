@@ -46,9 +46,9 @@ def deploy(config_file):
     if not has_hw_virtualization():
         print(f"{colors.YELLOW}Warning: No hardware virtualization detected – QEMU hypervisor will be used and Nova instances will be emulated with lower performance{colors.RESET}")
 
-    install_cinder = get(config, "INSTALL_CINDER", "no").lower() == "yes"
+    install_cinder = get(config, "cinder.INSTALL_CINDER", "no") == "yes"
 
-    ip_address = get(config, "HOST_IP")
+    ip_address = get(config, "network.HOST_IP")
 
     print("OpenStack Deployment Started\n")
     

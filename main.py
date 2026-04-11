@@ -17,29 +17,65 @@ def print_banner():
 
 def build_parser() -> argparse.ArgumentParser:
 
-    global launch_p
     global parser
+    global launch_p
 
-    parser = argparse.ArgumentParser(description="Debian OpenStack Installer Utility")
-    sub = parser.add_subparsers(dest="command", metavar="<command>", required=True)
+    parser = argparse.ArgumentParser(
+        description="Debian OpenStack Installer Utility"
+    )
 
-    sub.add_parser("deploy-allinone", help="Deploy a full OpenStack all-in-one")
+    sub = parser.add_subparsers(
+        dest="command",
+        metavar="<command>",
+        required=True
+    )
 
-    deploy_p = sub.add_parser("deploy", help="Deploy OpenStack from a config file")
-    deploy_p.add_argument("config_file", help="Path to the configuration file")
+    # deploy-allinone
+    deploy_allinone_p = sub.add_parser(
+        "deploy-allinone",
+        help="Deploy a full OpenStack all-in-one"
+    )
 
-    gen_p = sub.add_parser("generate-config", help="Generate a template configuration file")
-    gen_p.add_argument("file", help="Output path (file or directory)")
+    deploy_allinone_p.add_argument(
+        "--lvm-image-size-in-gb",
+        type=int,
+        default=5,
+        help="Size of the Cinder LVM image in GB"
+    )
 
-    launch_p = sub.add_parser("launch", help="Launch an OpenStack instance")
-    launch_p.add_argument("--name",    default="cirros-instance", help="Instance name")
-    launch_p.add_argument("--image",   default="cirros",          help="Image name")
-    launch_p.add_argument("--flavor",  default="m1.tiny",         help="Flavor")
-    launch_p.add_argument("--network", default="test",            help="Network name")
-    launch_p.add_argument("--password", default="",            help="Password for Instance")
+    # deploy
+    deploy_p = sub.add_parser(
+        "deploy",
+        help="Deploy OpenStack from a config file"
+    )
+    deploy_p.add_argument(
+        "config_file",
+        help="Path to the configuration file"
+    )
+
+    # generate-config
+    gen_p = sub.add_parser(
+        "generate-config",
+        help="Generate a template configuration file"
+    )
+    gen_p.add_argument(
+        "file",
+        help="Output path (file or directory)"
+    )
+
+    # launch
+    launch_p = sub.add_parser(
+        "launch",
+        help="Launch an OpenStack instance"
+    )
+
+    launch_p.add_argument("--name", default="cirros-instance")
+    launch_p.add_argument("--image", default="cirros")
+    launch_p.add_argument("--flavor", default="m1.tiny")
+    launch_p.add_argument("--network", default="test")
+    launch_p.add_argument("--password", default="")
 
     return parser
-
 
 def cmd_generate_config(args):
     src_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), "template.conf")
@@ -53,8 +89,17 @@ def cmd_deploy(args):
 
 
 def cmd_deploy_allinone(_args):
+
+    size = _args.lvm_image_size_in_gb
+
+    if size is not None and size <= 0:
+        print(f"{colors.RED}Invalid LVM image size specified. It must be positive.{colors.RESET}")
+        sys.exit(1)
+
     generate_config_file()
-    config_openstack()
+
+    config_openstack(size if size is not None else 5)
+
     deploy(get_config_file_path())
 
 

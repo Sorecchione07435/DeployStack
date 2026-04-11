@@ -20,7 +20,7 @@ def install_pkgs():
 
 def conf_mariadb(config):
 
-    ip_address = get(config, "HOST_IP", None)
+    ip_address = get(config, "network.HOST_IP", None)
 
     if not os.path.isfile(config_file_path):
 
@@ -47,10 +47,10 @@ def finalize():
     return True
 
 def create_services_databases(config):
-    db_password = get(config, "DATABASE_PASSWORD")
-    ip_address = get(config, "HOST_IP")
+    db_password = get(config, "passwords.DATABASE_PASSWORD")
+    ip_address = get(config, "network.HOST_IP")
 
-    install_cinder = get(config, "INSTALL_CINDER", "no").lower() == "yes"
+    install_cinder = get(config, "cinder.INSTALL_CINDER", "no") == "yes"
 
     databases = ["keystone", "glance", "placement", "nova_api", "nova_cell0", "nova", "neutron"]
     if install_cinder:

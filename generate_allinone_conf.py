@@ -19,7 +19,7 @@ def generate_config_file():
     src_file = os.path.join(script_dir, "template.yaml")
     shutil.copy(src_file, config_file_path)
 
-def config_openstack():
+def config_openstack(lvm_image_size_in_gb=None):
     global config_file_path
 
     # carica yaml
@@ -36,6 +36,9 @@ def config_openstack():
             ipaddress.IPv4Network(ip_cidr, strict=False).broadcast_address - 1
         )
     )
+
+    if lvm_image_size_in_gb is None:
+        lvm_image_size_in_gb = 5
 
     config_dict.setdefault("passwords", {})
     config_dict.setdefault("network", {})
@@ -62,10 +65,12 @@ def config_openstack():
 
     config_dict["bridge"]["PUBLIC_BRIDGE_INTERFACE"] = iface
 
-    config_dict["cinder"]["INSTALL_CINDER"] = True
+    config_dict["cinder"]["INSTALL_CINDER"] = "yes"
     config_dict["cinder"]["CINDER_VOLUME_LVM_PHYSICAL_PV_LOOP_NAME"] = get_free_loop()
     config_dict["cinder"]["CINDER_VOLUME_LVM_IMAGE_FILE_PATH"] = "/var/lib/cinder/images/cinder-volumes.img"
-    config_dict["cinder"]["CINDER_VOLUME_LVM_IMAGE_SIZE_IN_GB"] = 5
+
+
+    config_dict["cinder"]["CINDER_VOLUME_LVM_IMAGE_SIZE_IN_GB"] = lvm_image_size_in_gb
 
     virt_type = "kvm" if has_hw_virtualization() else "qemu"
     config_dict["compute"]["NOVA_COMPUTE_VIRT_TYPE"] = virt_type

@@ -38,15 +38,15 @@ def conf_openvswitch_bridges(config):
       
     INTERFACES_FILE = "/etc/network/interfaces.d/openvswitch"
 
-    public_iface = get(config, "PUBLIC_BRIDGE_INTERFACE")
-    public_bridge = get(config, "PUBLIC_BRIDGE")
-    internal_bridge = get(config, "INTERNAL_BRIDGE")
+    public_iface = get(config, "bridge.PUBLIC_BRIDGE_INTERFACE")
+    public_bridge = get(config, "bridge.PUBLIC_BRIDGE")
+    internal_bridge = get(config, "bridge.INTERNAL_BRIDGE")
 
-    ip_address =  get(config, "HOST_IP")
-    ip_address_netmask = get(config, "HOST_IP_NETMASK")
+    ip_address =  get(config, "network.HOST_IP")
+    ip_address_netmask = get(config, "network.HOST_IP_NETMASK")
 
-    subnet_address_gateway = get(config, "PUBLIC_SUBNET_GATEWAY")
-    subnet_address_dns_servers = get(config, "PUBLIC_SUBNET_DNS_SERVERS")
+    subnet_address_gateway = get(config, "public_network.PUBLIC_SUBNET_GATEWAY")
+    subnet_address_dns_servers = get(config, "public_network.PUBLIC_SUBNET_DNS_SERVERS")
 
     check_cmd = ["ip", "link", "show", public_iface]
     if run_command(check_cmd, f"Checking if interface {public_iface} exists", ignore_errors=True):
@@ -163,15 +163,15 @@ iface {internal_bridge} inet manual
 
 def conf_neutron(config):
 
-    database_password = get(config, "DATABASE_PASSWORD")
-    rabbitmq_password = get(config, "RABBITMQ_PASSWORD")
+    database_password = get(config, "passwords.DATABASE_PASSWORD")
+    rabbitmq_password = get(config, "passwords.RABBITMQ_PASSWORD")
 
-    service_password = get(config, "SERVICE_PASSWORD")
+    service_password = get(config, "passwords.SERVICE_PASSWORD")
 
-    ip_address = get(config, "HOST_IP")
+    ip_address = get(config, "network.HOST_IP")
 
-    public_bridge = get(config, "PUBLIC_BRIDGE")
-    internal_bridge = get(config, "INTERNAL_BRIDGE")
+    public_bridge = get(config, "bridge.PUBLIC_BRIDGE")
+    internal_bridge = get(config, "bridge.INTERNAL_BRIDGE")
      
     set_conf_option(neutron_conf, "database", "connection", f"mysql+pymysql://neutron:{database_password}@{ip_address}/neutron")
 
@@ -272,18 +272,18 @@ def create_networks(config):
      
     print()
     
-    ip_address = get(config, "HOST_IP")
+    ip_address = get(config, "network.HOST_IP")
 
-    admin_password = get(config, "ADMIN_PASSWORD")
+    admin_password = get(config, "passwords.ADMIN_PASSWORD")
 
-    public_subnet_range_start = get(config, "PUBLIC_SUBNET_RANGE_START")
-    public_subnet_range_end = get(config, "PUBLIC_SUBNET_RANGE_END")
+    public_subnet_range_start = get(config, "public_network.PUBLIC_SUBNET_RANGE_START")
+    public_subnet_range_end = get(config, "public_network.PUBLIC_SUBNET_RANGE_END")
 
-    public_subnet_gateway = get(config, "PUBLIC_SUBNET_GATEWAY")
+    public_subnet_gateway = get(config, "public_network.PUBLIC_SUBNET_GATEWAY")
      
-    public_subnet_dns_servers = get(config, "PUBLIC_SUBNET_DNS_SERVERS")
+    public_subnet_dns_servers = get(config, "public_network.PUBLIC_SUBNET_DNS_SERVERS")
 
-    public_subnet_cidr = get(config, "PUBLIC_SUBNET_CIDR")    
+    public_subnet_cidr = get(config, "public_network.PUBLIC_SUBNET_CIDR")    
 
     os.environ["OS_USERNAME"] = "admin"
     os.environ["OS_PASSWORD"] = admin_password
