@@ -1,0 +1,125 @@
+# Configure the Dashboard (Horizon)
+
+from ..utils.run_command_utils import run_command, run_sync_command_with_retry, run_command_sync
+from ..utils.apt_utils import apt_install, apt_update
+from ..utils.config_parser import parse_config, get, resolve_vars
+from ..utils.config_ini_set import set_conf_option
+from ..utils import colors
+
+import os
+import re
+
+settings_file = "/etc/openstack-dashboard/local_settings.py"
+apache_conf = "/etc/apache2/conf-enabled/openstack-dashboard.conf"
+
+def install_pkgs():
+    apt_update()
+    packages = ["openstack-dashboard"]
+    success = apt_install(packages, ux_text=f"Installing Horizon package...")
+    if not success:
+        return False
+    return True
+
+def set_memcached(settings_file="/etc/openstack-dashboard/local_settings.py", host="127.0.0.1", port=11211):
+    if os.path.exists(settings_file):
+        with open(settings_file, "r") as f:
+            content = f.read()
+    else:
+        content = ""
+
+    memcached_block = f"""CACHES = {{
+    'default': {{
+        'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
+        'LOCATION': '{host}:{port}',
+    }}
+}}"""
+
+    if "CACHES = {" in content:
+
+        content = re.sub(r"CACHES\s*=\s*\{.*\}\s*\}", memcached_block, content, flags=re.DOTALL)
+    else:
+        content += "\n" + memcached_block + "\n"
+
+    with open(settings_file, "w") as f:
+        f.write(content)
+
+
+def conf_horizon(config):
+    ip_address = get(config, "HOST_IP")
+
+    settings_to_set = {
+
+        "OPENSTACK_HOST": f'"{ip_address}"',
+        "OPENSTACK_KEYSTONE_URL": f'"http://{ip_address}:5000/v3"',
+        "DEBUG": "False",
+        "ALLOWED_HOSTS": "['*']",
+        "WEBROOT": "'/dashboard/'",
+        "DEFAULT_THEME": "'default'",
+        "COMPRESS_OFFLINE": "False"
+    }
+
+    if os.path.exists(settings_file):
+        with open(settings_file, "r") as f:
+            lines = f.readlines()
+    else:
+        lines = []
+
+    existing_keys = {l.split("=")[0].strip() for l in lines if "=" in l}
+
+    with open(settings_file, "w") as f:
+        for line in lines:
+            key_found = False
+            for key, value in settings_to_set.items():
+                if line.strip().startswith(key):
+                    f.write(f"{key} = {value}\n")
+                    key_found = True
+                    break
+            if not key_found:
+                f.write(line)
+
+        for key, value in settings_to_set.items():
+            if key not in existing_keys:
+                f.write(f"{key} = {value}\n")
+
+    set_memcached(host="127.0.0.1", port=11211)
+
+    if os.path.exists(apache_conf):
+        os.remove(apache_conf)
+
+    apache_block = """
+WSGIScriptAlias /dashboard /usr/share/openstack-dashboard/openstack_dashboard/wsgi.py process-group=horizon
+WSGIDaemonProcess horizon user=horizon group=horizon processes=3 threads=10 display-name=%{GROUP}
+WSGIProcessGroup horizon
+WSGIApplicationGroup %{GLOBAL}
+Alias /static /var/lib/openstack-dashboard/static/
+Alias /dashboard/static /var/lib/openstack-dashboard/static/
+<Directory /usr/share/openstack-dashboard/openstack_dashboard>
+  Require all granted
+</Directory>
+<Directory /var/lib/openstack-dashboard/static>
+  Require all granted
+</Directory>
+"""
+    if not os.path.exists(apache_conf) or apache_block not in open(apache_conf).read():
+        with open(apache_conf, "a") as f:
+            f.write(apache_block)
+
+
+def finalize():
+    print()
+    if not run_command(["systemctl", "restart", "apache2"], "Restarting Apache2..."):
+        return False
+    
+    return True
+
+def run_setup_horizon(config):
+    if not install_pkgs():
+        return False
+
+    conf_horizon(config)
+
+    if not finalize():
+        return False
+
+    print(f"\n{colors.GREEN}Horizon configured successfully!{colors.RESET}")
+    return True

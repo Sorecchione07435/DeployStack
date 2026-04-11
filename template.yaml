@@ -1,0 +1,47 @@
+# This is a small configuration file for configuring OpenStack
+# Set passwords for all OpenStack services, databases
+
+passwords:
+  ADMIN_PASSWORD: ""
+  SERVICE_PASSWORD: ""
+  RABBITMQ_PASSWORD: ""
+  DATABASE_PASSWORD: ""
+  DEMO_PASSWORD: ""
+
+# Network Configuration
+# Enter the IP address of your controller node where all OpenStack services will be installed
+network:
+  HOST_IP: ""
+  HOST_IP_NETMASK: ""
+  HOST_IP_CIDR: ""
+
+# Public network configuration
+# It is recommended to enter a larger IP address as Range Start to HOST_IP
+public_network:
+  PUBLIC_SUBNET_CIDR: ""
+  PUBLIC_SUBNET_RANGE_START: ""
+  PUBLIC_SUBNET_RANGE_END: ""
+  PUBLIC_SUBNET_GATEWAY: ""
+  PUBLIC_SUBNET_DNS_SERVERS: ""
+
+# Specifies the physical interface that will be used for public network external bridge
+bridge:
+  PUBLIC_BRIDGE_INTERFACE: ""
+  PUBLIC_BRIDGE: "br-ex"
+  INTERNAL_BRIDGE: "br-internal"
+
+# Choose whether to install the Block Storage service (Cinder) (Yes or No)
+cinder:
+  INSTALL_CINDER: "no"
+  CINDER_VOLUME_LVM_PHYSICAL_PV_LOOP_NAME: ""
+  CINDER_VOLUME_LVM_IMAGE_FILE_PATH: ""
+  # Size of the file-based LVM image for Cinder volumes (in GB)
+  CINDER_VOLUME_LVM_IMAGE_SIZE_IN_GB: ""
+
+# Compute configuration
+compute:
+  NOVA_COMPUTE_VIRT_TYPE: "kvm"
+
+# OpenStack release
+openstack:
+  OPENSTACK_RELEASE: "caracal"
