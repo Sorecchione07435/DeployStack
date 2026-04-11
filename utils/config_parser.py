@@ -2,26 +2,44 @@ import yaml
 import re
 import os
 
-def resolve_vars(config):
-    pattern = re.compile(r"\$(\w+)")
+pattern = re.compile(r"\$(\w+)")
 
-    for key, value in config.items():
-        match = pattern.match(value)
+def resolve_vars(obj, config=None):
+    if config is None:
+        config = obj
+
+    if isinstance(obj, dict):
+        return {k: resolve_vars(v, config) for k, v in obj.items()}
+
+    if isinstance(obj, list):
+        return [resolve_vars(v, config) for v in obj]
+
+    if isinstance(obj, str):
+        match = pattern.fullmatch(obj)
         if match:
-            ref_key = match.group(1)
-            config[key] = config.get(ref_key, value)
+            return config.get(match.group(1), obj)
+        return obj
 
-    return config
+    return obj
 
 def parse_config(file_path):
     if not os.path.isfile(file_path):
         raise FileNotFoundError(f"Configuration file '{file_path}' does not exist.")
 
     with open(file_path, "r") as f:
-        config = yaml.safe_load(f) or {}
+        return yaml.safe_load(f) or {}
 
-    return config
+def set(config_dict, key, value):
+    keys = key.split(".")
+    d = config_dict
 
+    for k in keys[:-1]:
+        if k not in d or not isinstance(d[k], dict):
+            d[k] = {}
+        d = d[k]
+
+    d[keys[-1]] = value
+    return value
 
 def get(config_dict, key, default=None, required=False):
     keys = key.split(".")
