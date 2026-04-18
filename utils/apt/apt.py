@@ -1,8 +1,8 @@
 import subprocess
 from ..core.spinner import Spinner
-from ..utils import colors
+from ..core import colors
 
-def run_command(command, message="Processing", width=60):
+def run_command(command, message="Processing", width=50):
 
     spinner = Spinner(message)
     spinner.start()
@@ -16,7 +16,7 @@ def run_command(command, message="Processing", width=60):
             text=True                # output in stringa
         )
     except subprocess.CalledProcessError as e:
-        spinner.stop("ERROR", color="red", width=width)
+        spinner.stop("ERROR", color="red", width=60)
         combined_output = ""
         if e.stdout:
             combined_output += e.stdout
@@ -29,7 +29,7 @@ def run_command(command, message="Processing", width=60):
             print(combined_output)
         return False
 
-    spinner.stop("DONE", color="yellow", width=80)
+    spinner.stop("DONE", color="yellow", width=60)
     return True
 
 

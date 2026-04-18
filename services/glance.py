@@ -4,7 +4,7 @@ from ..utils.core.commands import run_command, run_command_sync
 from ..utils.apt.apt import apt_install, apt_update
 from ..utils.config.parser import parse_config, get, resolve_vars
 from ..utils.config.setter import set_conf_option
-from ..utils import colors
+from ..utils.core import colors
 
 import urllib.request
 import os

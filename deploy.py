@@ -1,7 +1,7 @@
 from .utils.apt.apt import apt_update, apt_install
 from .utils.config.parser import parse_config, get, to_bool
 from .utils.config.parser import parse_config, get, resolve_vars
-from .utils import colors
+from .utils.core import colors
 from .utils.core.system_utils import has_hw_virtualization
 from .utils.network.net_utils import get_active_interface
 

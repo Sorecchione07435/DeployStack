@@ -1,7 +1,7 @@
 from ..utils.core.commands import run_command
 from ..utils.apt.apt import apt_install, apt_update
 from ..utils.config.parser import parse_config, get
-from ..utils import colors
+from ..utils.core import colors
 
 import subprocess
 
