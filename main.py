@@ -19,6 +19,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     global parser
     global launch_p
+    global generate_config_p
 
     parser = argparse.ArgumentParser(
         description="Debian OpenStack Installer Utility"
@@ -63,11 +64,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     # generate-config
-    parser.add_argument(
-        "--generate-config",
+    generate_config_p = sub.add_parser(
+        "generate-config",
         help="Generate a template configuration file",
-        metavar="FILE"
     )
+
+    generate_config_p.add_argument("file", help="Path to configuration file")
 
     # launch
     launch_p = sub.add_parser(
@@ -111,6 +113,14 @@ def cmd_generate_config(args):
     print(f"Configuration file generated in '{dst_file}'")
 
 def cmd_deploy(args):
+
+    if args.config_file and args.allinone:
+        print(f"{colors.RED}Error: you cannot specify both --allinone and --config-file.{colors.RESET}\n")
+        print("Please choose either --allinone for a full automated deployment")
+        print("or --config-file to use a custom configuration file.")
+        print()
+
+        sys.exit(1)
 
     if args.allinone:
 
@@ -162,11 +172,10 @@ def cmd_launch(args):
     launch(name=args.name, image=args.image, flavor=args.flavor, network=args.network, password=args.password)
 
 COMMANDS = {
-    "--generate-config": cmd_generate_config,
+    "generate-config": cmd_generate_config,
     "deploy":          cmd_deploy,
     "launch":          cmd_launch,
 }
-
 
 def main():
     print_banner()

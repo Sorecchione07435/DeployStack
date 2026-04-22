@@ -55,11 +55,11 @@ def finalize():
 
 def run_setup_placement(config):
      
-     if not install_pkgs(): return False
-     
-     if not conf_placement(config): return False
-     
-     if not finalize(): return False
-     
-     print(f"\n{colors.GREEN}Placement configured successfully!{colors.RESET}\n")
-     return True
+    if not install_pkgs(): return False
+    
+    if not conf_placement(config): return False
+    
+    if not finalize(): return False
+    
+    print(f"\n{colors.GREEN}Placement configured successfully!{colors.RESET}\n")
+    return True
