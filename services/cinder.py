@@ -49,6 +49,8 @@ def install_pkgs():
 
 def conf_lvm(config):
 
+    print()
+
     cinder_conf_path = "/etc/tgt/conf.d/cinder.conf"
     os.makedirs("/var/lib/cinder/images", exist_ok=True)
     line = "include /var/lib/cinder/volumes/*\n"
@@ -110,6 +112,7 @@ def conf_lvm(config):
     return True
 
 def write_cinder_lvm_env(config):
+
     env_path = "/etc/default/cinder-lvm"
 
     physical_volume = get(config, "cinder.lvm.PHYSICAL_VOLUME", default="")
@@ -133,6 +136,9 @@ VG_NAME={vg_name}
     return True
 
 def setup_loopback_service(config):
+
+    print()
+
     SERVICE_PATH = "/etc/systemd/system/cinder-loopback.service"
 
     lvm_image_file_path = get(config, "cinder.lvm.CINDER_VOLUME_LVM_IMAGE_FILE_PATH")

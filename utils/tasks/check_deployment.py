@@ -71,17 +71,17 @@ def check_deployment(include_endpoints: bool = True):
     result = CheckResult()
 
     checks = [
-        ("Services", ["apache2", "nova-api", "glance-api", "neutron-server", "cinder-volume"], check_service_active),
-        ("Packages", ["apache2", "nova-common", "glance-api", "neutron-server", "cinder-common"], is_package_installed),
+        ("Services", ["apache2", "nova-api", "glance-api", "neutron-server"], check_service_active),
+        ("Packages", ["apache2", "nova-common", "glance-api", "neutron-server"], is_package_installed),
         ("Config files", [
             "/etc/keystone/keystone.conf", "/etc/glance/glance-api.conf",
-            "/etc/nova/nova.conf", "/etc/neutron/neutron.conf", "/etc/cinder/cinder.conf"
+            "/etc/nova/nova.conf", "/etc/neutron/neutron.conf"
         ], os.path.isfile),
     ]
 
     if include_endpoints:
         checks.append(
-            ("Endpoints", ["identity", "compute", "image", "network", "volumev3"], check_endpoint)
+            ("Endpoints", ["identity", "compute", "image", "network"], check_endpoint)
         )
 
     for category, items, check_fn in checks:

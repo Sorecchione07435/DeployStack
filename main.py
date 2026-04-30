@@ -19,7 +19,7 @@ class ColoredArgumentParser(argparse.ArgumentParser):
         sys.exit(2)
 
 def print_banner():
-    print(f"{colors.BRIGHT_BLUE}Welcome to Debian OpenStack Installer Utility{colors.RESET}\n")
+    print(f"{colors.BRIGHT_BLUE}Welcome to Debian OpenStack Deployer Utility{colors.RESET}\n")
 
 def build_parser() -> argparse.ArgumentParser:
 
