@@ -30,6 +30,8 @@ def conf_nova(config):
 
     service_password = get(config, "passwords.SERVICE_PASSWORD")
 
+    os_region_name = get(config, "openstack.REGION_NAME")
+
     ip_address = get(config, "network.HOST_IP")
 
     set_conf_option(nova_conf, "api_database", "connection", f"mysql+pymysql://nova:{database_password}@{ip_address}/nova_api")
@@ -58,11 +60,11 @@ def conf_nova(config):
     set_conf_option(nova_conf, "glance", "api_servers", f"http://{ip_address}:9292")
 
     if install_cinder:
-        set_conf_option(nova_conf, "cinder", "os_region_name", "RegionOne")
+        set_conf_option(nova_conf, "cinder", "os_region_name", os_region_name)
 
     set_conf_option(nova_conf, "oslo_concurrency", "lock_path", "/var/lib/nova/tmp")
 
-    set_conf_option(nova_conf, "placement", "region_name", "RegionOne")
+    set_conf_option(nova_conf, "placement", "region_name", os_region_name)
     set_conf_option(nova_conf, "placement", "project_domain_name", "Default")
     set_conf_option(nova_conf, "placement", "project_name", "service")
     set_conf_option(nova_conf, "placement", "auth_type", "password")

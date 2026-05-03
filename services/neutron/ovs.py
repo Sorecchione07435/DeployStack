@@ -13,8 +13,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 
 BASE_DIR = os.path.dirname(os.path.dirname(current_dir))  
 
-ovs_bridges_interfaces_template_file = os.path.join(BASE_DIR, "templates", "ovs_bridges_interfaces.tpl")
-
+ovs_bridges_interfaces_template_file = os.path.join(BASE_DIR, "templates", "openvswitch", "ovs_bridges_interfaces.tpl")
 
 neutron_conf="/etc/neutron/neutron.conf"
 conf_ml2="/etc/neutron/plugins/ml2/ml2_conf.ini"
@@ -62,13 +61,13 @@ def conf_openvswitch_bridges(config):
 
     check_cmd = ["ip", "link", "show", public_bridge]
     if run_command(check_cmd, f"Checking if bridge {public_bridge} exists", ignore_errors=True):
-        run_command(["ip", "addr", "flush", "dev", public_bridge], f"Flushing IPs on {public_bridge}")
-        run_command(["ip", "link", "set", public_bridge, "down"], f"Bringing {public_bridge} down")
+        run_command(["ip", "addr", "flush", "dev", public_bridge], f"Flushing IPs on {public_bridge}", True)
+        run_command(["ip", "link", "set", public_bridge, "down"], f"Bringing {public_bridge} down", True)
 
     # INTERNAL_BRIDGE
     check_cmd = ["ip", "link", "show", internal_bridge]
     if run_command(check_cmd, f"Checking if bridge {internal_bridge} exists", ignore_errors=True):
-        run_command(["ip", "link", "set", internal_bridge, "down"], f"Bringing {internal_bridge} down")
+        run_command(["ip", "link", "set", internal_bridge, "down"], f"Bringing {internal_bridge} down", True)
     
         run_command(
         ["ovs-vsctl", "--if-exists", "del-port", public_bridge, public_iface],

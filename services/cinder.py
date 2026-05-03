@@ -11,8 +11,18 @@ import pwd
 import grp
 import os
 import subprocess
+import shutil
 
 cinder_conf = "/etc/cinder/cinder.conf"
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+cinder_loopback_service_file_path = os.path.join(BASE_DIR, "templates/cinder/cinder-loopback.service")
+
+cinder_loopback_service_start_script_template_file_path = os.path.join(BASE_DIR, "templates/cinder/cinder-loopback-start.sh.tpl")
+cinder_loopback_service_stop_script_template_file_path = os.path.join(BASE_DIR, "templates/cinder/cinder-loopback-stop.sh.tpl")
+
+cinder_lvm_env_conf_template_file_path = os.path.join(BASE_DIR, "templates/cinder/cinder-lvm-env-conf.tpl")
 
 def ensure_system_user_with_run_command(username="cinder"):
     success = True
@@ -84,7 +94,7 @@ def conf_lvm(config):
 
         if lvm_loop_dev not in losetup_output:
             if not run_command(["losetup", lvm_loop_dev, lvm_image_file_path],
-                               f"Associating {lvm_image_file_path} to {lvm_loop_dev}"): return False
+                               f"Associating {lvm_image_file_path} to {lvm_loop_dev}... "): return False
 
     try:
         pvs_output = subprocess.check_output(["pvs", "--noheadings", "-o", "pv_name"], text=True)
@@ -120,17 +130,22 @@ def write_cinder_lvm_env(config):
     lvm_image_file = get(config, "cinder.lvm.CINDER_VOLUME_LVM_IMAGE_FILE_PATH")
     vg_name = "cinder-volumes"
 
-    content = f"""PHYSICAL_VOLUME={physical_volume}
-LVM_LOOP_DEV={lvm_loop_dev}
-LVM_IMAGE_FILE={lvm_image_file}
-VG_NAME={vg_name}
-"""
-
     try:
+
+        with open(cinder_lvm_env_conf_template_file_path, "r") as f:
+                template = f.read()
+                cinder_loopback_service_content = template.format(
+                    physical_volume=physical_volume,
+                    lvm_loop_dev=lvm_loop_dev, 
+                    lvm_image_file=lvm_image_file,
+                    vg_name=vg_name
+                )
+
         with open(env_path, "w") as f:
-            f.write(content)
+                f.write(cinder_loopback_service_content)
+
     except Exception as e:
-        print(f"{colors.RED}Failed to write {env_path}: {e}{colors.RESET}")
+        print(f"\n{colors.RED}Failed to write '{env_path}' with an unhandled exception: {e}{colors.RESET}")
         return False
 
     return True
@@ -145,50 +160,42 @@ def setup_loopback_service(config):
     lvm_loop_dev = get(config, "cinder.lvm.CINDER_VOLUME_LVM_PHYSICAL_PV_LOOP_NAME")
     VG_NAME = "cinder-volumes"
 
-    service_content = f"""[Unit]
-Description=Cinder LVM device
-Before=cinder-volume.service tgt.service
-DefaultDependencies=no
-After=local-fs.target
-
-[Service]
-Type=oneshot
-RemainAfterExit=yes
-EnvironmentFile=/etc/default/cinder-lvm
-ExecStart=/bin/bash -c '
-if [ -z "$PHYSICAL_VOLUME" ]; then
-    # Usa loopback file solo se non c’è disco fisico
-    if ! losetup {lvm_loop_dev} | grep -q {lvm_image_file_path}; then
-        /sbin/losetup {lvm_loop_dev} {lvm_image_file_path}
-    fi
-fi
-/sbin/vgchange -ay {VG_NAME}
-'
-ExecStop=/bin/bash -c '
-/sbin/vgchange -an {VG_NAME}
-if [ -z "$PHYSICAL_VOLUME" ]; then
-    if losetup {lvm_loop_dev} | grep -q {lvm_image_file_path}; then
-        /sbin/losetup -d {lvm_loop_dev}
-    fi
-fi
-'
-
-[Install]
-WantedBy=multi-user.target
-"""
-
     try:
-        with open(SERVICE_PATH, "w") as f:
-            f.write(service_content)
+
+        shutil.copy2(cinder_loopback_service_file_path, SERVICE_PATH)
+
+        with open(cinder_loopback_service_start_script_template_file_path, "r") as f:
+            template = f.read()
+            cinder_loopback_service_start_script_content = template.format(
+                lvm_loop_dev=lvm_loop_dev,
+                lvm_image_file_path=lvm_image_file_path,
+                VG_NAME=VG_NAME
+            )
+
+        with open(cinder_loopback_service_stop_script_template_file_path, "r") as f:
+            template = f.read()
+            cinder_loopback_service_stop_script_content = template.format(
+                lvm_loop_dev=lvm_loop_dev,
+                lvm_image_file_path=lvm_image_file_path,
+                VG_NAME=VG_NAME
+            )
+
+        for path, content in [
+            ("/usr/local/bin/cinder-loopback-start.sh", cinder_loopback_service_start_script_content),
+            ("/usr/local/bin/cinder-loopback-stop.sh", cinder_loopback_service_stop_script_content),
+            ]:
+            with open(path, "w") as f:
+                f.write(content)
+
+            os.chmod(path, 0o755)
+
     except Exception as e:
-        print(f"{colors.RED}Failed to write service file: {e}{colors.RESET}")
+        print(f"{colors.RED}Failed to write service files with an unhandled exception: {e}{colors.RESET}")
         return False
 
-    if not run_command(["systemctl", "daemon-reload"], "Reloading systemd daemon..."): 
-        return False
+    if not run_command(["systemctl", "daemon-reload"], "Reloading systemd daemon..."): return False
 
-    if not run_command(["systemctl", "enable", "--now", "cinder-loopback.service"], 
-                       "Enabling and starting cinder-loopback service..."): return False
+    if not run_command(["systemctl", "enable", "--now", "cinder-loopback.service"], "Enabling and starting cinder-loopback service..."): return False
 
     return True
 

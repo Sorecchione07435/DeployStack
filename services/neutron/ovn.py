@@ -15,7 +15,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 
 BASE_DIR = os.path.dirname(os.path.dirname(current_dir))  
 
-ovn_bridges_interfaces_template_file = os.path.join(BASE_DIR, "templates", "ovn_bridges_interfaces.tpl")
+ovn_bridges_interfaces_template_file = os.path.join(BASE_DIR, "templates", "openvswitch", "ovn_bridges_interfaces.tpl")
 
 neutron_conf = "/etc/neutron/neutron.conf"
 conf_ml2 = "/etc/neutron/plugins/ml2/ml2_conf.ini"
@@ -87,7 +87,6 @@ def conf_ovn_bridges(config):
     with open(INTERFACES_FILE, "w") as f:
         f.write(bridges_interfaces_content)
 
-    # Backup other interface files
     interfaces_dir = "/etc/network/interfaces.d/"
     backup_dir = "/root/net-backup"
     os.makedirs(backup_dir, exist_ok=True)
@@ -214,7 +213,7 @@ def conf_ovn_neutron(config):
     flat_networks  = [n["name"] for n in provider_networks if n["type"] == "flat"]
     vlan_networks  = [n["name"] for n in provider_networks if n["type"] == "vlan"]
 
-    #bridge_mappings = ",".join(f'{n["name"]}:{n["bridge"]}' for n in provider_networks)
+    bridge_mappings = ",".join(f'{n["name"]}:{n["bridge"]}' for n in provider_networks)
 
     enable_distributed_floating_ip = get(config, "neutron.ovn.ENABLE_DISTRIBUTED_FLOATING_IP", "no") == "yes"
 
@@ -257,7 +256,7 @@ def conf_ovn_neutron(config):
     else:
         set_conf_option(neutron_conf, "ovn", "enable_distributed_floating_ip", "false")
     
-    set_conf_option(conf_ml2, "ovn", "ovn_bridge_mappings", f"public:{ovn_public_bridge}")
+    set_conf_option(conf_ml2, "ovn", "ovn_bridge_mappings", bridge_mappings)
 
     set_conf_option(conf_nova, "os_vif_ovs", "ovsdb_connection", "unix:/var/run/openvswitch/db.sock")
 
@@ -462,6 +461,12 @@ def create_ovn_networks(config):
     return True
 
 def run_setup_ovn_neutron(config):
+
+    tenant_type = get(config, "neutron.tenant_network.TYPE", "geneve")
+    if tenant_type != "geneve":
+        print(f"\n{colors.YELLOW}Warning: OVN only supports 'geneve' as tenant network type. "
+              f"Overriding '{tenant_type}' with 'geneve'.{colors.RESET}")
+        config["neutron"]["tenant_network"]["TYPE"] = "geneve"
 
     config_ovn_bridges = get(config, "neutron.ovn.CREATE_BRIDGES", "no") == "yes"
 

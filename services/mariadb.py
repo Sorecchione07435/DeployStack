@@ -7,7 +7,7 @@ from ..utils.core import colors
 import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-mysqld_template_file_path = os.path.join(BASE_DIR, "templates/mysqld.tpl")
+mysqld_template_file_path = os.path.join(BASE_DIR, "templates/mysql/mysqld.tpl")
 
 mysqld_file_path = "/etc/mysql/mariadb.conf.d/99-openstack.cnf"
 
@@ -23,14 +23,21 @@ def conf_mariadb(config):
 
     ip_address = get(config, "network.HOST_IP", None)
 
-    with open(mysqld_template_file_path, "r") as f:
-        template = f.read()
-        mysqld_template_content = template.format(
-            ip_address=ip_address,
-        )
+    try:
 
-    with open(mysqld_file_path, "w") as f:
-        f.write(mysqld_template_content)
+        with open(mysqld_template_file_path, "r") as f:
+            template = f.read()
+            mysqld_template_content = template.format(
+                ip_address=ip_address,
+            )
+
+        with open(mysqld_file_path, "w") as f:
+            f.write(mysqld_template_content)
+    except Exception as e:
+        print(f"\n{colors.RED}Unable to configure MariaDB with an unhandled exception: {e}{colors.RESET}")
+        return False
+    
+    return True
 
 def finalize(config):
 
@@ -38,13 +45,16 @@ def finalize(config):
      
     restart_cmd = ["systemctl", "restart", "mysql"]
 
-    if not run_command(restart_cmd, "Restarting MySQL..") : return False
+    if not run_command(restart_cmd, "Restarting MySQL...") : return False
 
     if not nc_wait(ip_address, 3306) : return False
 
     return True
 
 def create_services_databases(config):
+
+    print()
+    
     db_password = get(config, "passwords.DATABASE_PASSWORD")
     ip_address = get(config, "network.HOST_IP")
 
@@ -93,7 +103,7 @@ def run_setup_mariadb(config):
 
     if not install_pkgs(): return False
     
-    conf_mariadb(config)
+    if not conf_mariadb(config): return False
     
     if not finalize(config): return False
     

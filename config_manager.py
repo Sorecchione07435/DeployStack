@@ -9,6 +9,13 @@ import ipaddress
 
 config_file_path = ""
 
+def _remove_empty(d):
+    if isinstance(d, dict):
+        return {k: _remove_empty(v) for k, v in d.items() if v != "" and v is not None}
+    if isinstance(d, list):
+        return [_remove_empty(i) for i in d if i != "" and i is not None]
+    return d
+
 def _to_yes_no(val) -> str:
     if isinstance(val, bool):
         return "yes" if val else "no"
@@ -21,7 +28,6 @@ def generate_config_file() -> str:
     script_dir = os.path.dirname(os.path.realpath(__file__))
     src_file = os.path.join(script_dir, "templates/conf_template.yaml")
     shutil.copy(src_file, config_file_path)
-
 
     return config_file_path
 
@@ -106,12 +112,12 @@ def config_openstack(
             "OVN_PUBLIC_BRIDGE": "",
             "OVN_ENCAP_TYPE": "",
             "OVN_L3_SCHEDULER": "",
-            "ENABLE_DISTRIBUTED_FLOATING_IP": False
+            "ENABLE_DISTRIBUTED_FLOATING_IP": ""
         })
 
     # Tenant network
     config_dict["neutron"].setdefault("tenant_network", {})
-    config_dict["neutron"]["tenant_network"]["TYPE"] = "geneve" if neutron_driver == "ovn" else "flat"
+    config_dict["neutron"]["tenant_network"]["TYPE"] = "geneve"
     config_dict["neutron"]["tenant_network"]["VNI_RANGE"] = "1:65536"
 
     # Provider networks
@@ -150,8 +156,7 @@ def config_openstack(
     config_dict["openstack"].setdefault("OPENSTACK_RELEASE", "caracal")
     config_dict["openstack"].setdefault("REGION_NAME", "RegionOne")
 
-    # Scrive il file YAML aggiornato
     with open(config_file_path, "w") as f:
-        yaml.dump(config_dict, f, default_flow_style=False, allow_unicode=True)
+        yaml.dump(_remove_empty(config_dict), f, default_flow_style=False, allow_unicode=True)
 
     

@@ -40,6 +40,8 @@ def conf_neutron(config):
 
     driver = config.get("neutron", {}).get("DRIVER", "ovs").lower()
 
+    os_region_name = get(config, "openstack.REGION_NAME")
+
     service_plugins = "ovn-router" if driver == "ovn" else "router"
 
     ip_address = get(config, "network.HOST_IP")
@@ -67,7 +69,7 @@ def conf_neutron(config):
     set_conf_option(neutron_conf, "nova", "auth_type", "password")
     set_conf_option(neutron_conf, "nova", "project_domain_name", "default")
     set_conf_option(neutron_conf, "nova", "user_domain_name", "default")
-    set_conf_option(neutron_conf, "nova", "region_name", "RegionOne")
+    set_conf_option(neutron_conf, "nova", "region_name", os_region_name)
     set_conf_option(neutron_conf, "nova", "project_name", "service")
     set_conf_option(neutron_conf, "nova", "username", "nova")
     set_conf_option(neutron_conf, "nova", "password", service_password)
@@ -81,7 +83,7 @@ def conf_neutron(config):
     set_conf_option(conf_nova, "neutron", "auth_type", "password")
     set_conf_option(conf_nova, "neutron", "project_domain_name", "default")
     set_conf_option(conf_nova, "neutron", "user_domain_name", "default")
-    set_conf_option(conf_nova, "neutron", "region_name", "RegionOne")
+    set_conf_option(conf_nova, "neutron", "region_name", os_region_name)
     set_conf_option(conf_nova, "neutron", "project_name", "service")
     set_conf_option(conf_nova, "neutron", "username", "neutron")
     set_conf_option(conf_nova, "neutron", "password", service_password)

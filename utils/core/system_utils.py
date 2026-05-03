@@ -7,6 +7,7 @@ from time import sleep, time
 from . import colors
 
 import subprocess
+import sys
 
 def nc_wait(addr: str, port: int, timeout: int = 30) -> bool:
 
@@ -18,8 +19,10 @@ def nc_wait(addr: str, port: int, timeout: int = 30) -> bool:
             sock.close()
             return True
         elif time() - start_time > timeout:
-            print(f"{colors.RED}ERROR:{colors.RESET} Service at {addr}:{port} did not respond within {timeout} seconds.")
+            print(f"\n{colors.RED}ERROR:{colors.RESET} Service at {addr}:{port} did not respond within {timeout} seconds.")
             sock.close()
+
+            sys.exit(1);
             return False
         sleep(1)
 

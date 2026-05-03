@@ -64,6 +64,12 @@ def create_default_flavors(config):
     os.environ["OS_AUTH_URL"] = f"http://{ip_address}:5000/v3"
     os.environ["OS_IDENTITY_API_VERSION"] = "3"
 
+    run_command_sync(["openstack", "flavor", "delete", "1"])
+    run_command_sync(["openstack", "flavor", "delete", "2"])
+    run_command_sync(["openstack", "flavor", "delete", "3"])
+    run_command_sync(["openstack", "flavor", "delete", "4"])
+    run_command_sync(["openstack", "flavor", "delete", "5"])
+
     default_flavors_create_cmds = [
        "openstack flavor create m1.tiny --id 1 --ram 512 --disk 1 --vcpus 1",
        "openstack flavor create m1.small --id 2 --ram 2048 --disk 20 --vcpus 1",

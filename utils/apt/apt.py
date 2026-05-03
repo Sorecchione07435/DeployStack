@@ -2,6 +2,8 @@ import subprocess
 from ..core.spinner import Spinner
 from ..core import colors
 
+import sys
+
 def run_command(command, message="Processing", width=50):
 
     spinner = Spinner(message)
@@ -15,7 +17,9 @@ def run_command(command, message="Processing", width=50):
             stderr=subprocess.PIPE,
             text=True 
         )
+
     except subprocess.CalledProcessError as e:
+
         spinner.stop("ERROR", color="red", width=50)
         combined_output = ""
         if e.stdout:
@@ -23,10 +27,12 @@ def run_command(command, message="Processing", width=50):
         if e.stderr:
             combined_output += ("\n" + e.stderr if combined_output else e.stderr)
 
-        print(f"\n{colors.RED}Execution of command '{' '.join(command)}' failed with non-zero exit code: {e.returncode}{colors.RESET}")
+        print(f"\n{colors.RED}Execution of: '{' '.join(command)}' returned exit code {e.returncode}{colors.RESET}")
         if combined_output:
             print("\nCommand Last Output:")
             print(combined_output)
+
+        sys.exit(1)
         return False
 
     spinner.stop("DONE", color="yellow", width=50)
@@ -36,9 +42,8 @@ def run_command(command, message="Processing", width=50):
 def apt_update():
     return run_command(["sudo", "apt", "update"], "Updating the system repos...")
 
-
 def apt_install(packages, ux_text=None):
-    # Assicuriamoci di avere sempre una lista
+
     if isinstance(packages, str):
         packages = [packages]
 

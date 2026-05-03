@@ -21,9 +21,6 @@ def conf_placement(config):
 
     print()
 
-    db_password = get(config, "passwords.DATABASE_PASSWORD")
-    rabbitmq_password = get(config, "passwords.RABBITMQ_PASSWORD")
-
     service_password = get(config, "passwords.SERVICE_PASSWORD")
 
     ip_address = get(config, "network.HOST_IP")

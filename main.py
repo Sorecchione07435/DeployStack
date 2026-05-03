@@ -19,7 +19,7 @@ class ColoredArgumentParser(argparse.ArgumentParser):
         sys.exit(2)
 
 def print_banner():
-    print(f"{colors.BRIGHT_BLUE}Welcome to Debian DeployStack Utility{colors.RESET}\n")
+    print(f"{colors.BRIGHT_BLUE}Welcome to DeployStack Utility{colors.RESET}\n")
 
 def build_parser() -> argparse.ArgumentParser:
 
@@ -28,7 +28,7 @@ def build_parser() -> argparse.ArgumentParser:
     global generate_config_p
 
     parser = ColoredArgumentParser(
-        description="Debian DeployStack Utility"
+        description="DeployStack Utility"
     )
 
     sub = parser.add_subparsers(
@@ -177,7 +177,7 @@ def cmd_deploy(args):
 
         if args.generate_only:
             print(f"Configuration file generated in '{config_file_path}'\n")
-            print(f"You can start the deployment later with 'openstack_installer deploy --config-file {config_file_path}'")
+            print(f"You can start the deployment later with 'deploystack deploy --config-file {config_file_path}'")
             sys.exit(0)
 
 

@@ -84,7 +84,7 @@ def finalize(config):
     message = f"Restarting Apache2..."
     restart_cmd = ["systemctl", "restart", "apache2"]
 
-    if not  run_command(restart_cmd, message) : return False
+    if not run_command(restart_cmd, message) : return False
      
     if not nc_wait(ip_address, 5000) : return False
 
@@ -113,7 +113,7 @@ def create_projects_and_demo_user(config):
 
     if not create_service_project_cmd_result: return False
     
-    create_demo_user_cmds = [""
+    create_demo_user_cmds = [
         'openstack project create --domain default --description "Demo Project" demo --or-show',
         f"openstack user create --domain default --password {demo_password} demo --or-show",
         "openstack role create user --or-show",
@@ -159,21 +159,21 @@ def create_services_users(config):
     if install_cinder:
         services_user_create_cmds.append(f"openstack user create --domain default --password {service_password} cinder --or-show")
         services_create_cmds.append('openstack service show cinderv3 || openstack service create --name cinderv3 --description "OpenStack Block Storage" volumev3')
-        services_role_add_cmds.append("openstack role add --project service --user cinder admin")
+        services_role_add_cmds.append("openstack role add --project service --user cinder admin || true")
 
     full_services_user_create_cmds = " ; ".join(services_user_create_cmds)
     full_services_create_cmds = " ; ".join(services_create_cmds)
     full_services_role_add_cmds = " ; ".join(services_role_add_cmds)
 
-    full_services_user_create_cmds_result = run_command(["bash", "-c", full_services_user_create_cmds], "Creating Services Users...")
+    full_services_user_create_cmds_result = run_command(["bash", "-c", full_services_user_create_cmds], "Creating services users...")
 
     if not full_services_user_create_cmds_result: return False
     
-    full_services_create_cmds_result = run_command(["bash", "-c", full_services_create_cmds], "Creating Services...")
+    full_services_create_cmds_result = run_command(["bash", "-c", full_services_create_cmds], "Creating services...")
 
     if not full_services_create_cmds_result: return False
-    
-    full_services_role_add_cmds_result = run_command(["bash", "-c", full_services_role_add_cmds], "Adding Service User Roles...")
+
+    full_services_role_add_cmds_result = run_command(["bash", "-c", full_services_role_add_cmds], "Assigning service user roles...")
     
     if not full_services_role_add_cmds_result: return False
 
@@ -184,7 +184,7 @@ def create_services_endpoints(config):
     print()
 
     ip_address = get(config, "network.HOST_IP")
-    install_cinder = get(config, "optional_services.INSTALL_CINDER", "no") == "yes"
+    install_cinder = get(config, "optional_services.INSTALL_CINDER", "no").lower() == "yes"
 
     os_region_name = get(config, "openstack.REGION_NAME")
 
@@ -231,7 +231,7 @@ def create_services_endpoints(config):
 
     full_cmd = " ; ".join(services_endpoints_create_cmds)
 
-    if not run_command(["bash", "-c", full_cmd], "Creating Services Endpoints...") : return False
+    if not run_command(["bash", "-c", full_cmd], "Creating services endpoints...") : return False
 
     return True
 

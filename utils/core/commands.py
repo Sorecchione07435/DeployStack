@@ -3,7 +3,8 @@ from .spinner import Spinner
 from ..core import colors
 
 import time
-import subprocess
+import sys
+
 
 def run_command_output(cmd, ignore_errors=False):
 
@@ -16,6 +17,7 @@ def run_command_output(cmd, ignore_errors=False):
         else:
             raise
 
+
 def run_command_sync(command):
     try:
         subprocess.run(command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -23,76 +25,72 @@ def run_command_sync(command):
     except subprocess.CalledProcessError:
         return False
 
-def run_command(
-    cmd,
-    message="",
-    ignore_errors=False,
-    ignore_exit_codes=None,
-    retries=0,
-    delay=1
-):
 
+def run_command(cmd, message="", ignore_errors=False, ignore_exit_codes=None, retries=0, delay=1):
     attempt = 0
+    spinner = Spinner(message)
+    spinner.start()
 
     while attempt <= retries:
-        spinner = Spinner(f"{message}")
-        spinner.start()
-
         try:
-            subprocess.run(
+            process = subprocess.Popen(
                 cmd,
-                check=True,
                 stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
                 text=True
             )
-            spinner.stop("DONE", color="yellow", width=50)
-            return True
 
-        except subprocess.CalledProcessError as e:
-            # Exit code ignorato
-            if ignore_exit_codes and e.returncode in ignore_exit_codes:
-                spinner.stop("WARNING", color="yellow", width=50)
+            output_lines = []
+            for line in iter(process.stdout.readline, ''):
+                line = line.rstrip('\n')
+                if line:
+                    output_lines.append(line)
+
+            process.wait()
+            returncode = process.returncode
+
+            if ignore_exit_codes and returncode in ignore_exit_codes:
+                spinner.stop("WARNING", color="green", width=50)
                 return True
 
-            # Se non è l'ultimo tentativo → retry
+            if returncode == 0:
+                spinner.stop("DONE", color="yellow", width=50)
+                return True
+
+            # Failed: retry?
             if attempt < retries:
                 spinner.stop("RETRY", color="yellow", width=50)
                 time.sleep(delay)
                 attempt += 1
+                spinner = Spinner(message)
+                spinner.start()
                 continue
 
+            # Print output only on error
             if ignore_errors:
                 spinner.stop("WARNING", color="green", width=50)
                 print(f"{colors.GREEN}A command failed but was ignored as non-critical{colors.RESET}")
+                return True
             else:
-
-                combined_output = ""
-                if e.stdout:
-                    combined_output += e.stdout
-                if e.stderr:
-                    combined_output += ("\n" + e.stderr if combined_output else e.stderr)
-
                 spinner.stop("ERROR", color="red", width=50)
-                print(f"\n{colors.RED}Execution of command '{' '.join(cmd)}' failed with non-zero exit code: {e.returncode}{colors.RESET}")
-                if combined_output:
+                print(f"\n{colors.RED}Execution of: '{' '.join(cmd)}' returned exit code {returncode}{colors.RESET}")
+                if output_lines:
                     print("\nCommand Last Output:")
-                    print(combined_output)
+                    print("\n".join(output_lines))
                 return False
 
+        except Exception as e:
+            spinner.stop("ERROR", color="red", width=50)
+            print(f"{colors.RED}Exception running command: {e}{colors.RESET}")
             return False
 
-    return False
+    spinner.stop("FAILED", color="red", width=50)
+    sys.exit(1)
 
-def run_sync_command_with_retry(
-    command,
-    max_retries=3,
-    interval=1
-):
+
+def run_sync_command_with_retry(command, max_retries=3, interval=1):
     for attempt in range(max_retries):
-        success = run_command_sync(
-            command
-        )
+        success = run_command_sync(command)
 
         if success:
             return True
@@ -100,4 +98,5 @@ def run_sync_command_with_retry(
         if attempt < max_retries - 1:
             time.sleep(interval)
 
+    sys.exit(1)
     return False
