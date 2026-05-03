@@ -4,7 +4,7 @@ import os
 
 sys.path.insert(0, "/mnt/Documents")
 
-from openstack_installer.main import main  # importa main dal pacchetto
+from deploystack.main import main  # importa main dal pacchetto
 
 if __name__ == "__main__":
     main()

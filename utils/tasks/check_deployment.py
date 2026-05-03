@@ -11,6 +11,8 @@ MARKER_FILE = "/var/lib/openstack_installer/deploy_complete"
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 #logger = logging.get#logger(__name__)
 
+cinder_pkgs = ["cinder-api", "cinder-scheduler", "cinder-volume", "tgt"]
+
 @dataclass
 class CheckResult:
     passed: list[str] = field(default_factory=list)
@@ -24,20 +26,16 @@ class CheckResult:
         lines = [f"{colors.GREEN}PASSED:{colors.RESET} {s}" for s in self.passed] + [f"{colors.RED}FAILED:{colors.RESET} {s}" for s in self.failed]
         return "\n".join(lines)
 
-
 def is_package_installed(pkg_name: str) -> bool:
     try:
         result = subprocess.run(
-            ["dpkg", "-l", pkg_name],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
+            ["dpkg-query", "-W", "-f=${Status}", pkg_name],
+            capture_output=True, text=True, check=True
         )
-        return result.returncode == 0
-    except FileNotFoundError:
-        #logger.error("'dpkg' not found — are you on a Debian-based system?")
+        return "install ok installed" in result.stdout
+    except subprocess.CalledProcessError:
         return False
-
-
+    
 def check_endpoint(service_name: str) -> bool:
 
     try:
@@ -79,10 +77,24 @@ def check_deployment(include_endpoints: bool = True):
         ], os.path.isfile),
     ]
 
+    
+    def add_check(category, items, fn):
+        checks.append((category, items, fn))
+
+    if all(is_package_installed(pkg) for pkg in cinder_pkgs):
+        add_check("Services", ["cinder-scheduler", "cinder-volume", "tgt"], check_service_active)
+        add_check("Packages", cinder_pkgs, is_package_installed)
+        add_check("Config files", ["/etc/cinder/cinder.conf", "/etc/tgt/conf.d/cinder.conf"], os.path.isfile)
+
+
     if include_endpoints:
         checks.append(
             ("Endpoints", ["identity", "compute", "image", "network"], check_endpoint)
         )
+
+        if all(is_package_installed(pkg) for pkg in cinder_pkgs):
+            add_check("Endpoints", ["volumev3"], check_endpoint)
+
 
     for category, items, check_fn in checks:
         for item in items:

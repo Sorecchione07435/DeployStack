@@ -29,6 +29,8 @@ def conf_keystone(config):
 
     admin_password = get(config, "passwords.ADMIN_PASSWORD")
 
+    os_region_name = get(config, "openstack.REGION_NAME")
+
     identity_url = f"http://{ip_address}:5000/v3/"
 
     set_conf_option(keystone_conf, "database", "connection", f"mysql+pymysql://keystone:{db_password}@{ip_address}/keystone")
@@ -67,7 +69,7 @@ def conf_keystone(config):
         "--bootstrap-admin-url", identity_url,
         "--bootstrap-internal-url", identity_url,
         "--bootstrap-public-url", identity_url,
-        "--bootstrap-region-id", "RegionOne"
+        "--bootstrap-region-id", os_region_name
 ]
     print()
 
@@ -184,13 +186,15 @@ def create_services_endpoints(config):
     ip_address = get(config, "network.HOST_IP")
     install_cinder = get(config, "optional_services.INSTALL_CINDER", "no") == "yes"
 
+    os_region_name = get(config, "openstack.REGION_NAME")
+
     def ep(service, interface, url):
         check = (
             f"openstack endpoint list --service {service} --interface {interface} "
             f"-f value -c ID | grep -q ."
         )
         create = (
-            f"openstack endpoint create --region RegionOne "
+            f"openstack endpoint create --region {os_region_name} "
             f"{service} {interface} '{url}'"
         )
         return f"{check} || {create}"

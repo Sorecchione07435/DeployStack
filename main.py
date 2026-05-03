@@ -19,7 +19,7 @@ class ColoredArgumentParser(argparse.ArgumentParser):
         sys.exit(2)
 
 def print_banner():
-    print(f"{colors.BRIGHT_BLUE}Welcome to Debian OpenStack Deployer Utility{colors.RESET}\n")
+    print(f"{colors.BRIGHT_BLUE}Welcome to Debian DeployStack Utility{colors.RESET}\n")
 
 def build_parser() -> argparse.ArgumentParser:
 
@@ -28,7 +28,7 @@ def build_parser() -> argparse.ArgumentParser:
     global generate_config_p
 
     parser = ColoredArgumentParser(
-        description="Debian OpenStack Installer Utility"
+        description="Debian DeployStack Utility"
     )
 
     sub = parser.add_subparsers(
@@ -236,7 +236,7 @@ def main():
     if args.command is None:
         print(f"{colors.YELLOW}No command provided. Available commands:{colors.RESET}\n")
         parser.print_help()
-        print(f"\nTip: Run '{colors.BRIGHT_BLUE}openstack_installer <command> --help{colors.RESET}' for detailed usage of each command.")
+        print(f"\nTip: Run '{colors.BRIGHT_BLUE}deploystack <command> --help{colors.RESET}' for detailed usage of each command.")
         sys.exit(1)
 
     COMMANDS[args.command](args)
