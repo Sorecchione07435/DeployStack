@@ -13,14 +13,6 @@ import re
 settings_file = "/etc/openstack-dashboard/local_settings.py"
 apache_conf = "/etc/apache2/conf-enabled/openstack-dashboard.conf"
 
-def install_pkgs():
-
-    if not apt_update() : return False
-    
-    if not apt_install(["openstack-dashboard"], ux_text=f"Installing Horizon package...") : return False
-
-    return True
-
 def set_memcached(settings_file="/etc/openstack-dashboard/local_settings.py", host="127.0.0.1", port=11211):
     if os.path.exists(settings_file):
         with open(settings_file, "r") as f:
@@ -44,6 +36,13 @@ def set_memcached(settings_file="/etc/openstack-dashboard/local_settings.py", ho
     with open(settings_file, "w") as f:
         f.write(content)
 
+def install_pkgs():
+
+    if not apt_update() : return False
+    
+    if not apt_install(["openstack-dashboard"], ux_text=f"Installing Horizon package...") : return False
+
+    return True
 
 def conf_horizon(config):
     ip_address = get(config, "network.HOST_IP")
