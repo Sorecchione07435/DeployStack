@@ -86,8 +86,6 @@ def conf_openvswitch_bridges(config):
         ignore_errors=True
     )
 
-    print()
-
     with open(OVS_BRIDGES_INTERFACES, "r") as f:
         template = f.read()
 
