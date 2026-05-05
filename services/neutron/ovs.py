@@ -256,7 +256,7 @@ def create_ovs_networks(config):
          "--provider-physical-network", "public",
          "--provider-network-type", "flat", "public"],
         "Creating public network...",
-        ignore_errors=True)
+        )
 
     run_command(
         ["openstack", "subnet", "create", "--network", "public",
@@ -265,7 +265,7 @@ def create_ovs_networks(config):
          "--subnet-range", public_subnet_cidr,
          "public_subnet"] + dns_args,
         "Creating public subnet...",
-        ignore_errors=True)
+        )
     
     print()
 
@@ -274,7 +274,7 @@ def create_ovs_networks(config):
             "--provider-physical-network", "internal",
             "--provider-network-type", "flat", "internal"],
         "Creating internal network...",
-        ignore_errors=True)
+        )
 
     run_command(
         ["openstack", "subnet", "create", "--network", "internal",
@@ -284,7 +284,7 @@ def create_ovs_networks(config):
          "--dns-nameserver", "8.8.8.8",
          "internal_subnet"],
         "Creating internal subnet...",
-        ignore_errors=True)
+        )
     
     print()
 
@@ -294,20 +294,20 @@ def create_ovs_networks(config):
     run_command(
         ["openstack", "router", "create", "internal_router"],
         "Creating internal router...",
-        ignore_errors=True)
+        )
          
 
     run_command(
         ["openstack", "router", "set", "internal_router", "--external-gateway", "public"],
         "Setting external gateway for internal router...",
-        ignore_errors=True)
+        )
     
     print()
 
     run_command(
         ["openstack", "router", "add", "subnet", "internal_router", "internal_subnet"],
         "Adding internal subnet to router...",
-        ignore_errors=True)
+        )
     
     print()
 

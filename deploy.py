@@ -20,7 +20,6 @@ from .services.neutron import run_setup_neutron
 from .services.horizon import run_setup_horizon
 
 import os
-import subprocess
 import sys
 
 def deploy(config_file):
@@ -62,36 +61,56 @@ def deploy(config_file):
     print("OpenStack Deployment Started\n")
     
     print("Setting up prerequirements\n")
-    if not run_setup_prereqs(config):  return False
+    if not run_setup_prereqs(config): 
+        sys.exit(1)
+        return False
 
     print("Setting up MariaDB\n")
-    if not run_setup_mariadb(config): return False
+    if not run_setup_mariadb(config): 
+        sys.exit(1)
+        return False
 
     print("Setting up Keystone\n")
-    if not run_setup_keystone(config): return False
+    if not run_setup_keystone(config):
+        sys.exit(1)
+        return False
 
     print("Setting up Glance\n")
-    if not run_setup_glance(config): return False
+    if not run_setup_glance(config):
+        sys.exit(1)
+        return False
     
     if install_cinder:
         print("Setting up Cinder\n")
-        if not run_setup_cinder(config): return False
+        if not run_setup_cinder(config):
+            sys.exit(1)
+            return False
         
     print("Setting up Placement\n")
-    if not run_setup_placement(config): return False
+    if not run_setup_placement(config):
+        sys.exit(1)
+        return False
     
     print("Setting up Nova\n")
-    if not run_setup_nova(config): return False
+    if not run_setup_nova(config):
+        sys.exit(1)
+        return False
     
     print("Setting up a Compute Node\n")
-    if not run_setup_nova_compute(config): return False
+    if not run_setup_nova_compute(config): 
+        sys.exit(1)
+        return False
 
     print("Setting up Neutron\n")
-    if not run_setup_neutron(config): return False
+    if not run_setup_neutron(config): 
+        sys.exit(1)
+        return False
     
     if install_horizon:
         print("Setting up Horizon\n")
-        if not run_setup_horizon(config): return False
+        if not run_setup_horizon(config): 
+            sys.exit(1) 
+            return False
     
     print(f"\n*** {colors.GREEN}OpenStack Deployment Completed Successfully!{colors.RESET} ***")
 

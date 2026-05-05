@@ -346,7 +346,7 @@ def create_ovn_networks(config):
          "--provider-physical-network", "public",
          "--provider-network-type", "flat",
          "public"],
-        "Creating public network...", ignore_errors=True)
+        "Creating public network...",)
 
     run_command(
         ["openstack", "subnet", "create",
@@ -355,7 +355,7 @@ def create_ovn_networks(config):
          "--gateway", public_subnet_gateway,
          "--subnet-range", public_subnet_cidr,
          "public_subnet"] + dns_args,
-        "Creating public subnet...", ignore_errors=True)
+        "Creating public subnet...",)
 
     print()
 
@@ -364,7 +364,7 @@ def create_ovn_networks(config):
          "--share",
          "--provider-network-type", "geneve",
          "internal"],
-        "Creating internal (geneve) network...", ignore_errors=True)
+        "Creating internal (geneve) network...",)
 
     run_command(
         ["openstack", "subnet", "create",
@@ -374,21 +374,21 @@ def create_ovn_networks(config):
          "--allocation-pool", "start=10.0.0.10,end=10.0.0.200",
          "--dns-nameserver", "8.8.8.8",
          "internal_subnet"],
-        "Creating internal subnet...", ignore_errors=True)
+        "Creating internal subnet...")
 
     print()
 
     run_command(
         ["openstack", "router", "create", "internal_router"],
-        "Creating router...", ignore_errors=True)
+        "Creating router...")
 
     run_command(
         ["openstack", "router", "set", "internal_router", "--external-gateway", "public"],
-        "Setting external gateway...", ignore_errors=True)
+        "Setting external gateway...")
 
     run_command(
         ["openstack", "router", "add", "subnet", "internal_router", "internal_subnet"],
-        "Adding internal subnet to router...", ignore_errors=True)
+        "Adding internal subnet to router...")
 
     print()
 

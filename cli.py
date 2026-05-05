@@ -178,9 +178,9 @@ def cmd_deploy(args):
             sys.exit(0)
 
 
-        deploy(config_file_path)
+        deploy(config_file_path) 
     else:
-        deploy(args.config_file)
+        deploy(args.config_file) 
 
 
 def cmd_launch(args):

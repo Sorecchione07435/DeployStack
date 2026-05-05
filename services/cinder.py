@@ -51,8 +51,6 @@ def install_pkgs():
 
 def conf_lvm(config):
 
-    print()
-
     cinder_conf_path = "/etc/tgt/conf.d/cinder.conf"
     os.makedirs("/var/lib/cinder/images", exist_ok=True)
     line = "include /var/lib/cinder/volumes/*\n"
@@ -70,6 +68,9 @@ def conf_lvm(config):
         lvm_dev = lvm_loop_dev
 
         if not os.path.exists(lvm_image_file_path):
+
+            print()
+
             fallocate_cmd = ["fallocate", "-l", f"{lvm_image_size_in_gb}G", lvm_image_file_path]
 
             if not run_command(fallocate_cmd, "Allocating LVM Disk Image..."): return False
@@ -97,6 +98,9 @@ def conf_lvm(config):
         pvs_output = ""
 
     if lvm_dev not in pvs_output.split():
+
+        print()
+
         if not run_command(["pvcreate", lvm_dev], f"Creating physical volume on {lvm_dev}"): return False
 
     try:
