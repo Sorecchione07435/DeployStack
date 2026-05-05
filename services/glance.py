@@ -1,14 +1,14 @@
 # Configure the Image service (Glance)
 
+import urllib.request
+import os
+
 from ..utils.core.commands import run_command, run_command_sync
-from ..utils.apt.apt import apt_install, apt_update
-from ..utils.config.parser import parse_config, get, resolve_vars
+from ..utils.apt.apt import apt_install
+from ..utils.config.parser import get
 from ..utils.config.setter import set_conf_option
 from ..utils.core.system_utils import nc_wait
 from ..utils.core import colors
-
-import urllib.request
-import os
 
 glance_conf= "/etc/glance/glance-api.conf"
 
@@ -53,17 +53,19 @@ def conf_glance(config):
     "PATH=/usr/bin:/usr/local/bin",
     "glance-manage", "db_sync"
 ]
-    if not run_command(db_migration_cmd, "Configuring Glance...") : return False
+    if not run_command(db_migration_cmd, "Running Glance DB Migrations...") : return False
 
     return True
 
 def finalize(config):
 
+    print()
+
     ip_address = get(config, "network.HOST_IP")
 
     restart_cmd = ["systemctl", "restart", "glance-api"]
 
-    if not run_command_sync(restart_cmd) : return False
+    if not run_command(restart_cmd, "Restarting Glance service...") : return False
 
     if not nc_wait(ip_address, 9292) : return False
 
@@ -109,13 +111,11 @@ def upload_cirros_image(config):
     
 def run_setup_glance(config):
      
-    if not install_pkgs(): return False
-    
-    if not conf_glance(config): return False
-    
-    if not finalize(config): return False
-    
+    if not install_pkgs(): return False 
+    if not conf_glance(config): return False 
+    if not finalize(config): return False 
     if not upload_cirros_image(config): return False
 
     print(f"\n{colors.GREEN}Glance configured successfully!{colors.RESET}\n")
+
     return True

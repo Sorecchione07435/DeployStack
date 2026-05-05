@@ -3,11 +3,9 @@ from ..utils.apt.apt import apt_install, apt_update
 from ..utils.config.parser import parse_config, get, resolve_vars
 from ..utils.core.system_utils import nc_wait
 from ..utils.core import colors
+from ..templates import MYSQL_CONFIG
 
 import os
-
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-mysqld_template_file_path = os.path.join(BASE_DIR, "templates/mysql/mysqld.tpl")
 
 mysqld_file_path = "/etc/mysql/mariadb.conf.d/99-openstack.cnf"
 
@@ -25,7 +23,7 @@ def conf_mariadb(config):
 
     try:
 
-        with open(mysqld_template_file_path, "r") as f:
+        with open(MYSQL_CONFIG, "r") as f:
             template = f.read()
             mysqld_template_content = template.format(
                 ip_address=ip_address,
@@ -101,12 +99,9 @@ def create_services_databases(config):
 
 def run_setup_mariadb(config):
 
-    if not install_pkgs(): return False
-    
-    if not conf_mariadb(config): return False
-    
-    if not finalize(config): return False
-    
+    if not install_pkgs(): return False 
+    if not conf_mariadb(config): return False  
+    if not finalize(config): return False  
     if not create_services_databases(config): return False
 
     print(f"\n{colors.YELLOW}MariaDB and Databases configured successfully!{colors.RESET}\n")

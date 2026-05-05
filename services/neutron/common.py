@@ -1,14 +1,12 @@
 # Configure the Networking service (Neutron)
 
-from ...utils.core.commands import run_command, run_sync_command_with_retry, run_command_sync, run_command_output
+import os
+
+from ...utils.core.commands import run_command
 from ...utils.apt.apt import apt_install, apt_update
-from ...utils.config.parser import parse_config, get, resolve_vars
+from ...utils.config.parser import get
 from ...utils.config.setter import set_conf_option
 from ...utils.core import colors
-
-import os
-import shutil
-import json
 
 neutron_conf = "/etc/neutron/neutron.conf"
 conf_ml2 = "/etc/neutron/plugins/ml2/ml2_conf.ini"
@@ -116,6 +114,7 @@ def finalize():
     return True
 
 def run_setup_neutron_common(config, driver_fn):
+    
     if not install_pkgs(): return False
     if not conf_neutron(config): return False
     if not finalize(): return False

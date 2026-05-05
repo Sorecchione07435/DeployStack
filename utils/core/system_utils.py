@@ -26,6 +26,14 @@ def nc_wait(addr: str, port: int, timeout: int = 30) -> bool:
             return False
         sleep(1)
 
+def check_ifupdown():
+    result = subprocess.run(
+        ["dpkg", "-s", "ifupdown"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL
+    )
+    return result.returncode == 0
+
 def has_hw_virtualization():
     try:
         with open("/proc/cpuinfo") as f:

@@ -1,12 +1,12 @@
 # Configure an Compute Node
 
-from ..utils.core.commands import run_command, run_sync_command_with_retry, run_command_sync
-from ..utils.apt.apt import apt_install, apt_update
-from ..utils.config.parser import parse_config, get, resolve_vars
+import os
+
+from ..utils.core.commands import run_command, run_command_sync
+from ..utils.apt.apt import apt_install
+from ..utils.config.parser import get
 from ..utils.config.setter import set_conf_option
 from ..utils.core import colors
-
-import os
 
 nova_conf= "/etc/nova/nova.conf"
 nova_compute_conf= "/etc/nova/nova-compute.conf"
@@ -86,13 +86,10 @@ def create_default_flavors(config):
     
 def run_setup_nova_compute(config):
      
-     if not install_pkgs(): return False
-     
-     conf_nova_compute(config)
-     
-     if not finalize(): return False
-     
-     if not create_default_flavors(config): return False
-     
-     print(f"\n{colors.GREEN}Compute Node configured successfully!{colors.RESET}\n")
-     return True
+    if not install_pkgs(): return False   
+    conf_nova_compute(config)   
+    if not finalize(): return False   
+    if not create_default_flavors(config): return False
+    
+    print(f"\n{colors.GREEN}Compute Node configured successfully!{colors.RESET}\n")
+    return True

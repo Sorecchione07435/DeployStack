@@ -1,19 +1,16 @@
+# Configure the OpenvSwitch (OVS) Driver for Neutron
+
+import os
+import shutil
+import json
+
 from ...utils.core.commands import run_command, run_sync_command_with_retry, run_command_sync, run_command_output
 from ...utils.apt.apt import apt_install, apt_update
 from ...utils.config.parser import parse_config, get, resolve_vars
 from ...utils.config.setter import set_conf_option
 from ...utils.core.system_utils import nc_wait
 from ...utils.core import colors
-
-import os
-import shutil
-import json
-
-current_dir = os.path.dirname(os.path.abspath(__file__)) 
-
-BASE_DIR = os.path.dirname(os.path.dirname(current_dir))  
-
-ovs_bridges_interfaces_template_file = os.path.join(BASE_DIR, "templates", "openvswitch", "ovs_bridges_interfaces.tpl")
+from ...templates import OVS_BRIDGES_INTERFACES
 
 neutron_conf="/etc/neutron/neutron.conf"
 conf_ml2="/etc/neutron/plugins/ml2/ml2_conf.ini"
@@ -91,8 +88,11 @@ def conf_openvswitch_bridges(config):
 
     print()
 
-    with open(ovs_bridges_interfaces_template_file, "r") as f:
+    with open(OVS_BRIDGES_INTERFACES, "r") as f:
         template = f.read()
+
+    if isinstance(subnet_address_dns_servers, list):
+        subnet_address_dns_servers = " ".join(subnet_address_dns_servers)
 
     bridges_interfaces_content = template.format(
         public_iface=public_iface,
@@ -235,6 +235,10 @@ def create_ovs_networks(config):
 
     public_subnet_cidr = get(config, "public_network.PUBLIC_SUBNET_CIDR")    
 
+    dns_args = []
+    for dns in public_subnet_dns_servers:
+        dns_args.extend(["--dns-nameserver", dns])
+
     os.environ["OS_USERNAME"] = "admin"
     os.environ["OS_PASSWORD"] = admin_password
     os.environ["OS_PROJECT_NAME"] = "admin"
@@ -259,10 +263,9 @@ def create_ovs_networks(config):
     run_command(
         ["openstack", "subnet", "create", "--network", "public",
          "--allocation-pool", f"start={public_subnet_range_start},end={public_subnet_range_end}",
-         "--dns-nameserver", public_subnet_dns_servers,
          "--gateway", public_subnet_gateway,
          "--subnet-range", public_subnet_cidr,
-         "public_subnet"],
+         "public_subnet"] + dns_args,
         "Creating public subnet...",
         ignore_errors=True)
     
@@ -343,16 +346,15 @@ def create_ovs_networks(config):
 
 def run_setup_ovs_neutron(config):
      
-     config_openvswitch_bridges = get(config, "neutron.ovs.CREATE_BRIDGES", "no") == "yes"
+    config_openvswitch_bridges = get(config, "neutron.ovs.CREATE_BRIDGES", "no") == "yes"
 
-     if not install_pkgs(): return False
-     
-     if config_openvswitch_bridges:
+    if not install_pkgs(): return False
+    
+    if config_openvswitch_bridges:
         if not conf_openvswitch_bridges(config) : return False
-        
-     if not conf_neutron_ovs(config) : return False
-     
-     if not finalize(config) : return False
-     
-     if not create_ovs_networks(config): return False
-     return True
+    
+    if not conf_neutron_ovs(config) : return False
+    if not finalize(config) : return False   
+    if not create_ovs_networks(config): return False
+
+    return True

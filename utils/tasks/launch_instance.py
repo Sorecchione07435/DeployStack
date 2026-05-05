@@ -12,19 +12,17 @@ from pathlib import Path
 
 from ..core import colors
 
+from ...templates import CLOUD_CONFIG_LINUX, CLOUD_CONFIG_LINUX_NO_ROOT
+
 logger = logging.getLogger(__name__)
 
 BASE_DIR = Path(__file__).resolve().parents[2]
-
-linux_yaml_cloud_config_template_file_path = os.path.join(BASE_DIR, "templates/cloud-config/linux.yaml")
-linux_no_root_yaml_cloud_config_template_file_path = os.path.join(BASE_DIR, "templates/cloud-config/linux_no_root.yaml")
 
 SSH_KEY_PATH = os.path.expanduser("~/.ssh/")
 DEFAULT_FLAVOR  = "m1.tiny"
 DEFAULT_IMAGE   = "cirros"
 DEFAULT_NETWORK = "internal"
 EXTERNAL_NET    = "public"
-
 
 def _run(args: list[str], check=True) -> subprocess.CompletedProcess:
     try:
@@ -191,9 +189,9 @@ def generate_user_config(ostype: str, default_user: str, password: str,
     password_hash = crypt.crypt(password, salt)
 
     template_path = (
-        linux_no_root_yaml_cloud_config_template_file_path
+        CLOUD_CONFIG_LINUX_NO_ROOT
         if default_user != "root"
-        else linux_yaml_cloud_config_template_file_path
+        else CLOUD_CONFIG_LINUX
     )
 
     with open(template_path, "r") as f:

@@ -1,8 +1,8 @@
 # Configure the Placement service (Placement)
 
-from ..utils.core.commands import run_command, run_sync_command_with_retry, run_command_sync
-from ..utils.apt.apt import apt_install, apt_update
-from ..utils.config.parser import parse_config, get, resolve_vars
+from ..utils.core.commands import run_command
+from ..utils.apt.apt import apt_install
+from ..utils.config.parser import get
 from ..utils.config.setter import set_conf_option
 from ..utils.core.system_utils import nc_wait
 from ..utils.core import colors
@@ -56,10 +56,8 @@ def finalize(config):
 
 def run_setup_placement(config):
      
-    if not install_pkgs(): return False
-    
-    if not conf_placement(config): return False
-    
+    if not install_pkgs(): return False   
+    if not conf_placement(config): return False  
     if not finalize(config): return False
     
     print(f"\n{colors.GREEN}Placement configured successfully!{colors.RESET}\n")

@@ -69,7 +69,7 @@ def run_command(cmd, message="", ignore_errors=False, ignore_exit_codes=None, re
             # Print output only on error
             if ignore_errors:
                 spinner.stop("WARNING", color="green", width=50)
-                print(f"{colors.GREEN}A command failed but was ignored as non-critical{colors.RESET}")
+                print(f"{colors.GREEN}Command '{' '.join(cmd)}' failed with exit code {returncode} but ignored as non-critical{colors.RESET}")
                 return True
             else:
                 spinner.stop("ERROR", color="red", width=50)

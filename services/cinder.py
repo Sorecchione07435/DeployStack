@@ -1,28 +1,20 @@
 # Configure the Block Storage service (Cinder)
 
-from ..utils.core.commands import run_command, run_sync_command_with_retry, run_command_sync
-from ..utils.apt.apt import apt_install, apt_update
-from ..utils.config.parser import parse_config, get, resolve_vars
-from ..utils.config.setter import set_conf_option
-from ..utils.core.system_utils import nc_wait
-from ..utils.core import colors
-
 import pwd
 import grp
 import os
 import subprocess
 import shutil
 
+from ..utils.core.commands import run_command
+from ..utils.apt.apt import apt_install
+from ..utils.config.parser import get
+from ..utils.config.setter import set_conf_option
+from ..utils.core.system_utils import nc_wait
+from ..utils.core import colors
+from ..templates import CINDER_LOOPBACK_SERVICE, CINDER_LOOPBACK_START_SCRIPT, CINDER_LOOPBACK_STOP_SCRIPT, CINDER_LVM_ENV_CONF
+
 cinder_conf = "/etc/cinder/cinder.conf"
-
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-cinder_loopback_service_file_path = os.path.join(BASE_DIR, "templates/cinder/cinder-loopback.service")
-
-cinder_loopback_service_start_script_template_file_path = os.path.join(BASE_DIR, "templates/cinder/cinder-loopback-start.sh.tpl")
-cinder_loopback_service_stop_script_template_file_path = os.path.join(BASE_DIR, "templates/cinder/cinder-loopback-stop.sh.tpl")
-
-cinder_lvm_env_conf_template_file_path = os.path.join(BASE_DIR, "templates/cinder/cinder-lvm-env-conf.tpl")
 
 def ensure_system_user_with_run_command(username="cinder"):
     success = True
@@ -79,11 +71,14 @@ def conf_lvm(config):
 
         if not os.path.exists(lvm_image_file_path):
             fallocate_cmd = ["fallocate", "-l", f"{lvm_image_size_in_gb}G", lvm_image_file_path]
+
             if not run_command(fallocate_cmd, "Allocating LVM Disk Image..."): return False
 
             if not ensure_system_user_with_run_command("cinder"): return False
+
             uid = pwd.getpwnam("cinder").pw_uid
             gid = grp.getgrnam("cinder").gr_gid
+
             os.chown(lvm_image_file_path, uid, gid)
             os.chmod(lvm_image_file_path, 0o600)
 
@@ -132,7 +127,7 @@ def write_cinder_lvm_env(config):
 
     try:
 
-        with open(cinder_lvm_env_conf_template_file_path, "r") as f:
+        with open(CINDER_LVM_ENV_CONF, "r") as f:
                 template = f.read()
                 cinder_loopback_service_content = template.format(
                     physical_volume=physical_volume,
@@ -162,9 +157,9 @@ def setup_loopback_service(config):
 
     try:
 
-        shutil.copy2(cinder_loopback_service_file_path, SERVICE_PATH)
+        shutil.copy2(CINDER_LOOPBACK_SERVICE, SERVICE_PATH)
 
-        with open(cinder_loopback_service_start_script_template_file_path, "r") as f:
+        with open(CINDER_LOOPBACK_START_SCRIPT, "r") as f:
             template = f.read()
             cinder_loopback_service_start_script_content = template.format(
                 lvm_loop_dev=lvm_loop_dev,
@@ -172,7 +167,7 @@ def setup_loopback_service(config):
                 VG_NAME=VG_NAME
             )
 
-        with open(cinder_loopback_service_stop_script_template_file_path, "r") as f:
+        with open(CINDER_LOOPBACK_STOP_SCRIPT, "r") as f:
             template = f.read()
             cinder_loopback_service_stop_script_content = template.format(
                 lvm_loop_dev=lvm_loop_dev,
@@ -260,16 +255,11 @@ def finalize(config):
 
 def run_setup_cinder(config):
 
-    if not install_pkgs(): return False
-    
+    if not install_pkgs(): return False 
     if not conf_lvm(config): return False
-
-    if not write_cinder_lvm_env(config): return False
-    
-    if not setup_loopback_service(config): return False
-    
-    if not conf_cinder(config): return False
-    
+    if not write_cinder_lvm_env(config): return False   
+    if not setup_loopback_service(config): return False   
+    if not conf_cinder(config): return False    
     if not finalize(config): return False
     
     print(f"\n{colors.GREEN}Cinder configured successfully!{colors.RESET}\n")

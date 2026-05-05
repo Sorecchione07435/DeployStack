@@ -78,7 +78,13 @@ def config_openstack(
     config_dict["public_network"]["PUBLIC_SUBNET_RANGE_START"] = ip
     config_dict["public_network"]["PUBLIC_SUBNET_RANGE_END"] = last_ip
     config_dict["public_network"]["PUBLIC_SUBNET_GATEWAY"] = gateway
-    config_dict["public_network"]["PUBLIC_SUBNET_DNS_SERVERS"] = "8.8.8.8"
+    config_dict["public_network"]["PUBLIC_SUBNET_DNS_SERVERS"] = "8.8.8.8,8.8.4.4"
+
+    dns = config_dict["public_network"]["PUBLIC_SUBNET_DNS_SERVERS"]
+
+    if isinstance(dns, str):
+        dns_list = [ip.strip() for ip in dns.split(",") if ip.strip()]
+        config_dict["public_network"]["PUBLIC_SUBNET_DNS_SERVERS"] = dns_list
 
     # Neutron
     config_dict.setdefault("neutron", {})

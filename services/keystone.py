@@ -1,14 +1,14 @@
 # Configure the Identity service (Keystone)
 
+import os
+import configparser
+
 from ..utils.core.commands import run_command
 from ..utils.apt.apt import apt_install, apt_update
 from ..utils.config.parser import parse_config, get, resolve_vars
 from ..utils.config.setter import set_conf_option
 from ..utils.core.system_utils import nc_wait
 from ..utils.core import colors
-
-import os
-import configparser
 
 keystone_conf = "/etc/keystone/keystone.conf"
 
@@ -278,18 +278,12 @@ export OS_IMAGE_API_VERSION=2
 
 def run_setup_keystone(config):
 
-    if not install_pkgs(): return False
-    
+    if not install_pkgs(): return False  
     if not conf_keystone(config): return False
-    
-    if not finalize(config): return False
-    
-    if not create_projects_and_demo_user(config): return False
-    
-    if not create_services_users(config): return False
-    
-    if not create_services_endpoints(config): return False
-    
+    if not finalize(config): return False 
+    if not create_projects_and_demo_user(config): return False 
+    if not create_services_users(config): return False  
+    if not create_services_endpoints(config): return False  
     if not generate_environment_cli_scripts(config): return False
     
     print(f"\n{colors.GREEN}Keystone configured successfully!{colors.RESET}\n")

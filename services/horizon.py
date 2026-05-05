@@ -1,14 +1,13 @@
 # Configure the Dashboard (Horizon)
 
-from ..utils.core.commands import run_command, run_sync_command_with_retry, run_command_sync
-from ..utils.apt.apt import apt_install, apt_update
-from ..utils.config.parser import parse_config, get, resolve_vars
-from ..utils.config.setter import set_conf_option
-from ..utils.core.system_utils import nc_wait
-from ..utils.core import colors
-
 import os
 import re
+
+from ..utils.core.commands import run_command
+from ..utils.apt.apt import apt_install, apt_update
+from ..utils.config.parser import get
+from ..utils.core.system_utils import nc_wait
+from ..utils.core import colors
 
 settings_file = "/etc/openstack-dashboard/local_settings.py"
 apache_conf = "/etc/apache2/conf-enabled/openstack-dashboard.conf"
@@ -120,9 +119,7 @@ def finalize(config):
 def run_setup_horizon(config):
 
     if not install_pkgs(): return False
-
     conf_horizon(config)
-
     if not finalize(config): return False
 
     print(f"\n{colors.GREEN}Horizon configured successfully!{colors.RESET}")

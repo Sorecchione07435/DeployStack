@@ -1,13 +1,13 @@
 # Configure the Compute service (Nova)
 
-from ..utils.core.commands import run_command, run_sync_command_with_retry, run_command_sync
-from ..utils.apt.apt import apt_install, apt_update
-from ..utils.config.parser import parse_config, get, resolve_vars
+import os
+
+from ..utils.core.commands import run_command, run_command_sync
+from ..utils.apt.apt import apt_install
+from ..utils.config.parser import get
 from ..utils.config.setter import set_conf_option
 from ..utils.core.system_utils import nc_wait
 from ..utils.core import colors
-
-import os
 
 nova_conf = "/etc/nova/nova.conf"
 
@@ -161,14 +161,11 @@ def add_default_keypair(config):
 
 def run_setup_nova(config):
      
-     if not install_pkgs(): return False
-     
-     if not conf_nova(config): return False
-     
-     if not finalize(config): return False
-     
-     if not add_default_keypair(config): return False
-     
-     print(f"\n{colors.GREEN}Nova configured successfully!{colors.RESET}\n")
-     return True
+    if not install_pkgs(): return False  
+    if not conf_nova(config): return False 
+    if not finalize(config): return False
+    if not add_default_keypair(config): return False
+    
+    print(f"\n{colors.GREEN}Nova configured successfully!{colors.RESET}\n")
+    return True
     

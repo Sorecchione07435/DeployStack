@@ -2,9 +2,11 @@ from .utils.apt.apt import apt_update, apt_install
 from .utils.config.parser import parse_config, get, to_bool
 from .utils.config.parser import parse_config, get, resolve_vars
 from .utils.core import colors
-from .utils.core.system_utils import has_hw_virtualization
+from .utils.core.system_utils import has_hw_virtualization, check_ifupdown
 from .utils.network.net_utils import get_active_interface
 from .utils.tasks.check_deployment import mark_deployment_complete, MARKER_FILE
+
+from .utils.config.validator import validate_all
 
 from .services.prereqs import run_setup_prereqs
 from .services.mariadb import run_setup_mariadb
@@ -19,14 +21,7 @@ from .services.horizon import run_setup_horizon
 
 import os
 import subprocess
-
-def check_ifupdown():
-    result = subprocess.run(
-        ["dpkg", "-s", "ifupdown"],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL
-    )
-    return result.returncode == 0
+import sys
 
 def deploy(config_file):
 
@@ -40,20 +35,29 @@ def deploy(config_file):
 
     if (create_ovn_bridges or create_ovs_bridges) and os.path.exists(f"/sys/class/net/{public_iface}/wireless"):
         print(f"{colors.RED}Wi-Fi interfaces are not supported for OVS bridge networking, Switch to Ethernet to continue OpenStack deployment.{colors.RESET}")
+
+        sys.exit(1)
         return False
   
     if not check_ifupdown():
-        print()
         print(f"OpenStack deployment cannot proceed because {colors.GREEN}ifupdown{colors.RESET} is not installed on this system.\nPlease install the {colors.GREEN}ifupdown{colors.RESET} package and ensure your network is properly configured before retrying the deployment.")
+        
+        sys.exit(1)
         return False
-    
+        
     if not has_hw_virtualization():
         print(f"{colors.YELLOW}Warning: No hardware virtualization detected – QEMU hypervisor will be used and Nova instances will be emulated with lower performance{colors.RESET}")
 
-    install_cinder = get(config, "optional_services.INSTALL_CINDER", "no") == "yes"
-    install_horizon = get(config, "optional_services.INSTALL_HORIZON", "no") == "yes"
+    install_cinder = get(config, "optional_services.INSTALL_CINDER", "no").lower() == "yes"
+    install_horizon = get(config, "optional_services.INSTALL_HORIZON", "no").lower() == "yes"
 
     ip_address = get(config, "network.HOST_IP")
+
+    if not validate_all(config):
+        print("\nPlease review and correct any errors reported in the configuration above before retrying the OpenStack deployment again.")
+
+        sys.exit(1)
+        return False 
 
     print("OpenStack Deployment Started\n")
     

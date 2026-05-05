@@ -4,7 +4,7 @@ import os
 
 sys.path.insert(0, "/mnt/Documents")
 
-from deploystack.main import main  # importa main dal pacchetto
+from deploystack.main import main
 
 if __name__ == "__main__":
     main()

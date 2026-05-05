@@ -1,21 +1,16 @@
 # Configure the Open Virtual Network (OVN) Driver for Neutron
 
-from ...utils.core.commands import run_command, run_sync_command_with_retry, run_command_sync, run_command_output
-from ...utils.apt.apt import apt_install, apt_update
-from ...utils.config.parser import parse_config, get, resolve_vars
-from ...utils.config.setter import set_conf_option
-from ...utils.core.system_utils import nc_wait
-from ...utils.core import colors
-
 import os
 import shutil
 import json
 
-current_dir = os.path.dirname(os.path.abspath(__file__)) 
-
-BASE_DIR = os.path.dirname(os.path.dirname(current_dir))  
-
-ovn_bridges_interfaces_template_file = os.path.join(BASE_DIR, "templates", "openvswitch", "ovn_bridges_interfaces.tpl")
+from ...utils.core.commands import run_command, run_command_sync, run_command_output
+from ...utils.apt.apt import apt_install
+from ...utils.config.parser import get
+from ...utils.config.setter import set_conf_option
+from ...utils.core.system_utils import nc_wait
+from ...utils.core import colors
+from ...templates import OVN_BRIDGES_INTERFACES
 
 neutron_conf = "/etc/neutron/neutron.conf"
 conf_ml2 = "/etc/neutron/plugins/ml2/ml2_conf.ini"
@@ -70,8 +65,10 @@ def conf_ovn_bridges(config):
 
     print()
 
-    # Write network interfaces file
-    with open(ovn_bridges_interfaces_template_file, "r") as f:
+    if isinstance(subnet_address_dns_servers, list):
+        subnet_address_dns_servers = " ".join(subnet_address_dns_servers)
+
+    with open(OVN_BRIDGES_INTERFACES, "r") as f:
         template = f.read()
 
     bridges_interfaces_content = template.format(
@@ -323,6 +320,10 @@ def create_ovn_networks(config):
 
     ovn_public_bridge = get(config, "neutron.ovn.OVN_PUBLIC_BRIDGE")
 
+    dns_args = []
+    for dns in public_subnet_dns_servers:
+        dns_args.extend(["--dns-nameserver", dns])
+
     os.environ["OS_USERNAME"] = "admin"
     os.environ["OS_PASSWORD"] = admin_password
     os.environ["OS_PROJECT_NAME"] = "admin"
@@ -351,10 +352,9 @@ def create_ovn_networks(config):
         ["openstack", "subnet", "create",
          "--network", "public",
          "--allocation-pool", f"start={public_subnet_range_start},end={public_subnet_range_end}",
-         "--dns-nameserver", public_subnet_dns_servers,
          "--gateway", public_subnet_gateway,
          "--subnet-range", public_subnet_cidr,
-         "public_subnet"],
+         "public_subnet"] + dns_args,
         "Creating public subnet...", ignore_errors=True)
 
     print()
@@ -470,28 +470,15 @@ def run_setup_ovn_neutron(config):
 
     config_ovn_bridges = get(config, "neutron.ovn.CREATE_BRIDGES", "no") == "yes"
 
-    if not install_pkgs():
-        return False
+    if not install_pkgs(): return False
 
     if config_ovn_bridges:
-        if not conf_ovn_bridges(config):
-            return False
+        if not conf_ovn_bridges(config): return False
 
-    if not conf_ovn_neutron(config):
-        return False
-
-    # Open TCP ports on OVN DBs before starting neutron-server
-    if not conf_ovn_db_connections(config):
-        return False
-
-    # Configure ovs-vsctl external-ids for ovn-controller
-    if not conf_ovn_controller(config):
-        return False
-
-    if not finalize(config):
-        return False
-
-    if not create_ovn_networks(config):
-        return False
+    if not conf_ovn_neutron(config): return False
+    if not conf_ovn_db_connections(config): return False
+    if not conf_ovn_controller(config): return False
+    if not finalize(config): return False
+    if not create_ovn_networks(config): return False
 
     return True
