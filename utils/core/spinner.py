@@ -1,5 +1,7 @@
 import sys
+import termios
 import threading
+import tty
 import time
 
 class Spinner:
@@ -10,10 +12,15 @@ class Spinner:
         self.thread = None
         self.message = message
         self._lock = threading.Lock()
+        self._stdin_fd = sys.stdin.fileno()
+        self._old_term = None
 
     def start(self):
         self.running = True
         self.idx = 0
+        # disabilita echo e input
+        self._old_term = termios.tcgetattr(self._stdin_fd)
+        tty.setcbreak(self._stdin_fd)
         self.thread = threading.Thread(target=self._spin, daemon=True)
         self.thread.start()
 
@@ -25,30 +32,21 @@ class Spinner:
                 self.idx = (self.idx + 1) % len(self.spinner)
             time.sleep(0.1)
 
-    def pause(self):
+    def stop(self, done_message="DONE", color="yellow", width=80):
         self.running = False
         if self.thread:
             self.thread.join()
 
-        sys.stdout.write(f"\r{' ' * (len(self.message) + 4)}\r")
-        sys.stdout.flush()
+        # ripristina terminale
+        if self._old_term:
+            termios.tcsetattr(self._stdin_fd, termios.TCSADRAIN, self._old_term)
 
-    def resume(self):
-        self.running = True
-        self.thread = threading.Thread(target=self._spin, daemon=True)
-        self.thread.start()
-
-    def stop(self, done_message="DONE", color="yellow", width=80):
         color_codes = {
             "yellow": "\033[33m",
             "red": "\033[31m",
             "green": "\033[32m",
             "reset": "\033[0m"
         }
-        self.running = False
-        if self.thread:
-            self.thread.join()
-
         color_code = color_codes.get(color, "")
         reset_code = color_codes["reset"]
         message_aligned = self.message.ljust(width)

@@ -2,10 +2,12 @@ import os
 import shutil
 import uuid
 import yaml
-from .utils.network.net_utils import get_network_info
-from .utils.core.system_utils import has_hw_virtualization, get_free_loop, generate_password
-
 import ipaddress
+
+from ...utils.network.net_utils import get_network_info
+from ...utils.core.system_utils import has_hw_virtualization, get_free_loop, generate_password
+
+from ...templates import OPENSTACK_CONFIG_TEMPLATE
 
 config_file_path = ""
 
@@ -26,11 +28,10 @@ def generate_config_file() -> str:
     global config_file_path
     config_file_path = f"/root/openstack-config-{uuid.uuid4().hex}.yaml"
     script_dir = os.path.dirname(os.path.realpath(__file__))
-    src_file = os.path.join(script_dir, "templates/conf_template.yaml")
+    src_file = os.path.join(script_dir, OPENSTACK_CONFIG_TEMPLATE)
     shutil.copy(src_file, config_file_path)
 
     return config_file_path
-
 
 def config_openstack(
     install_horizon: str = "yes",
@@ -61,6 +62,8 @@ def config_openstack(
 
     virt_type = "kvm" if has_hw_virtualization() else "qemu"
 
+    start_ip = str(ipaddress.IPv4Address(int(ipaddress.IPv4Address(ip)) + 50))
+
     # Password
     config_dict.setdefault("passwords", {})
     for key in ["ADMIN_PASSWORD", "SERVICE_PASSWORD", "RABBITMQ_PASSWORD", "DATABASE_PASSWORD", "DEMO_PASSWORD"]:
@@ -75,7 +78,8 @@ def config_openstack(
     # Public network
     config_dict.setdefault("public_network", {})
     config_dict["public_network"]["PUBLIC_SUBNET_CIDR"] = network
-    config_dict["public_network"]["PUBLIC_SUBNET_RANGE_START"] = ip
+
+    config_dict["public_network"]["PUBLIC_SUBNET_RANGE_START"] = start_ip
     config_dict["public_network"]["PUBLIC_SUBNET_RANGE_END"] = last_ip
     config_dict["public_network"]["PUBLIC_SUBNET_GATEWAY"] = gateway
     config_dict["public_network"]["PUBLIC_SUBNET_DNS_SERVERS"] = "8.8.8.8,8.8.4.4"

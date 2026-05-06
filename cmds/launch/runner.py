@@ -7,16 +7,12 @@ import uuid
 import shutil
 import base64
 import crypt
-import secrets
 from pathlib import Path
 
-from ..core import colors
-
+from ...utils.core import colors
 from ...templates import CLOUD_CONFIG_LINUX, CLOUD_CONFIG_LINUX_NO_ROOT
 
 logger = logging.getLogger(__name__)
-
-BASE_DIR = Path(__file__).resolve().parents[2]
 
 SSH_KEY_PATH = os.path.expanduser("~/.ssh/")
 DEFAULT_FLAVOR  = "m1.tiny"

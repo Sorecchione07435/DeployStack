@@ -343,6 +343,12 @@ def create_ovs_networks(config):
     return True
 
 def run_setup_ovs_neutron(config):
+
+    tenant_type = get(config, "neutron.tenant_network.TYPE", "geneve")
+    if tenant_type == "geneve":
+        print(f"\n{colors.YELLOW}Warning: OVS does not support 'geneve' as tenant network type. "
+              f"Overriding with 'flat'.{colors.RESET}")
+        config["neutron"]["tenant_network"]["TYPE"] = "flat"
      
     config_openvswitch_bridges = get(config, "neutron.ovs.CREATE_BRIDGES", "no") == "yes"
 

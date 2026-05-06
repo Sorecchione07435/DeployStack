@@ -102,6 +102,8 @@ def conf_nova(config):
     register_cell0_migration_cmd_result = run_command(register_cell0_migration_cmd, "Registering Nova cell0 in the database...")
 
     if not register_cell0_migration_cmd_result: return False
+
+    print()
     
     create_cell1_migration_cmd_result = run_command(create_cell1_migration_cmd, "Creating initial Nova cell1 for VM scheduling...", ignore_exit_codes=[2])
 
@@ -156,7 +158,7 @@ def add_default_keypair(config):
 
     if not success: return False
 
-    print(f"{colors.YELLOW}Keypair '{key_name}' created and saved to {key_file}.{colors.RESET}")
+    print(f"{colors.YELLOW}Keypair '{key_name}' created and saved to {key_file}{colors.RESET}")
     return True
 
 def run_setup_nova(config):

@@ -1,23 +1,23 @@
-from .utils.apt.apt import apt_update, apt_install
-from .utils.config.parser import parse_config, get, to_bool
-from .utils.config.parser import parse_config, get, resolve_vars
-from .utils.core import colors
-from .utils.core.system_utils import has_hw_virtualization, check_ifupdown
-from .utils.network.net_utils import get_active_interface
-from .utils.tasks.check_deployment import mark_deployment_complete, MARKER_FILE
+from ...utils.apt.apt import apt_update, apt_install
+from ...utils.config.parser import parse_config, get, to_bool
+from ...utils.config.parser import parse_config, get, resolve_vars
+from ...utils.core import colors
+from ...utils.core.system_utils import has_hw_virtualization, check_ifupdown
+from ...utils.network.net_utils import get_active_interface
+from ...utils.tasks.check_deployment import mark_deployment_complete, MARKER_FILE
 
-from .utils.config.validator import validate_all
+from ...utils.config.validator import validate_all
 
-from .services.prereqs import run_setup_prereqs
-from .services.mariadb import run_setup_mariadb
-from .services.keystone import run_setup_keystone
-from .services.glance import run_setup_glance
-from .services.cinder import run_setup_cinder
-from .services.placement import run_setup_placement
-from .services.nova import run_setup_nova
-from .services.nova_compute import run_setup_nova_compute
-from .services.neutron import run_setup_neutron
-from .services.horizon import run_setup_horizon
+from ...services.prereqs import run_setup_prereqs
+from ...services.mariadb import run_setup_mariadb
+from ...services.keystone import run_setup_keystone
+from ...services.glance import run_setup_glance
+from ...services.cinder import run_setup_cinder
+from ...services.placement import run_setup_placement
+from ...services.nova import run_setup_nova
+from ...services.nova_compute import run_setup_nova_compute
+from ...services.neutron import run_setup_neutron
+from ...services.horizon import run_setup_horizon
 
 import os
 import sys

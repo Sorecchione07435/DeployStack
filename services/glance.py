@@ -23,6 +23,8 @@ def install_pkgs():
     return True
 
 def conf_glance(config):
+
+    print()
       
     db_password = get(config, "passwords.DATABASE_PASSWORD")
     service_password = get(config, "passwords.SERVICE_PASSWORD")

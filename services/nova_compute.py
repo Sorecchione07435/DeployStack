@@ -39,6 +39,8 @@ def finalize():
 
     if not run_command(["systemctl", "restart", "nova-api", "nova-scheduler", "nova-compute", "apache2"], "Restarting Nova Compute services..."): return False
     
+    print()
+
     cell_discover_hosts_migration_cmd = [
     "sudo", "-u", "nova",
     "nova-manage", "cell_v2", "discover_hosts", "--verbose"

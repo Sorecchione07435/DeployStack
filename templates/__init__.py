@@ -25,4 +25,4 @@ CLOUD_CONFIG_LINUX_NO_ROOT      = _t("cloud-config", "linux_no_root.yaml")
 MYSQL_CONFIG                    = _t("mysql", "mysqld.tpl")
 
 # Config
-CONF_TEMPLATE                   = _t("conf_template.yaml")
+OPENSTACK_CONFIG_TEMPLATE       = _t("openstack", "openstack.yaml")

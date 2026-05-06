@@ -28,4 +28,4 @@ def main():
         print(f"\nTip: Run '{colors.BRIGHT_BLUE}deploystack <command> --help{colors.RESET}' for detailed usage of each command.")
         sys.exit(1)
 
-    COMMANDS[args.command](args)
+    COMMANDS[args.command](parser, args)
