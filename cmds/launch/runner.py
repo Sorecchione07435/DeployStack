@@ -383,7 +383,7 @@ def launch(
         key_path = None
         public_key = None
 
-    if "cirros" in image_name:
+    if "cirros" in image_name and password not in (None, ""):
         password_enabled = False
         print(f"{colors.YELLOW}Info: CirrOS detected. Skipping password configuration (unsupported image).{colors.RESET}\n")
 
@@ -391,7 +391,6 @@ def launch(
         password_enabled = False
         print(f"{colors.YELLOW}Warning: Missing image metadata. Skipping password configuration for safety.{colors.RESET}\n")
 
-    # Create server — always get back an ID
     if password_enabled and password:
         server_id = create_server_with_password(
             name, image_id, flavor_id, network_id,
@@ -402,12 +401,11 @@ def launch(
             name, image_id, flavor_id, network_id, keypair
         )
 
-    # All subsequent operations use server_id, never name
     wait_for_active(server_id)
 
     fip = allocate_floating_ip(external_net)
 
-    attach_floating_ip(server_id, fip)   # ← ID, not name
+    attach_floating_ip(server_id, fip)
 
     if password_enabled and password:
         print_summary(name, fip, key_path, True, os_admin_user, password, os_type)
