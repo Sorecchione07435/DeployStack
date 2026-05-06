@@ -2,7 +2,7 @@ import argparse
 import sys
 
 from ..utils.core import colors
-from .utils import ColoredArgumentParser
+from .parser import ColoredArgumentParser
 
 from ..cmds.deploy.main import deploy
 from ..cmds.launch.main import launch
