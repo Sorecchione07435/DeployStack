@@ -92,10 +92,14 @@ def validate_neutron(config) -> bool:
                 ok = False
 
     # Tenant network
+    neutron_driver = get(config, "neutron.DRIVER")
     tenant_type = get(config, "neutron.tenant_network.TYPE")
     vni_range = get(config, "neutron.tenant_network.VNI_RANGE")
-    if not tenant_type or not vni_range:
+    if not tenant_type and not vni_range and neutron_driver == "ovn":
         print(f"{colors.RED}Error: neutron.tenant_network.TYPE or VNI_RANGE not set{colors.RESET}")
+        ok = False
+    elif not tenant_type and neutron_driver == "ovs":
+        print(f"{colors.RED}Error: neutron.tenant_network.TYPE not set{colors.RESET}")
         ok = False
 
     # Provider networks

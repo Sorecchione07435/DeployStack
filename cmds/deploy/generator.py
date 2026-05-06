@@ -127,8 +127,8 @@ def config_openstack(
 
     # Tenant network
     config_dict["neutron"].setdefault("tenant_network", {})
-    config_dict["neutron"]["tenant_network"]["TYPE"] = "geneve"
-    config_dict["neutron"]["tenant_network"]["VNI_RANGE"] = "1:65536"
+    config_dict["neutron"]["tenant_network"]["TYPE"] = "geneve" if neutron_driver == "ovn" else "flat"
+    config_dict["neutron"]["tenant_network"]["VNI_RANGE"] = "1:65536" if neutron_driver == "ovn" else ""
 
     # Provider networks
     if neutron_driver == "ovs":

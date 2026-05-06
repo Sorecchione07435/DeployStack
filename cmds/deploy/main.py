@@ -90,7 +90,11 @@ def deploy(parser, args) -> None:
             print(f"You can start the deployment later with 'deploystack deploy --config-file {config_file_path}'")
             sys.exit(0)
 
-
         runner_deploy(config_file_path) 
     else:
+
+        if args.config_file is None or not os.path.exists(args.config_file):
+            print(f"{colors.RED}Configuration file not found. Generate it first using 'deploystack generate-config <file>'{colors.RESET}")
+            sys.exit(1)
+            
         runner_deploy(args.config_file) 
