@@ -387,7 +387,7 @@ def launch(
         password_enabled = False
         print(f"{colors.YELLOW}Info: CirrOS detected. Skipping password configuration (unsupported image).{colors.RESET}\n")
 
-    elif not os_type or not os_distro:
+    elif (not os_type or not os_distro) and password not in (None, ""):
         password_enabled = False
         print(f"{colors.YELLOW}Warning: Missing image metadata. Skipping password configuration for safety.{colors.RESET}\n")
 
@@ -397,6 +397,8 @@ def launch(
             keypair, os_type, os_admin_user, password, public_key
         )
     else:
+        print()
+
         server_id = create_server(
             name, image_id, flavor_id, network_id, keypair
         )
