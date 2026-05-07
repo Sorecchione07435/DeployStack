@@ -1,6 +1,6 @@
 import subprocess
 from .spinner import Spinner
-from ..core import colors
+from ....utils.core import colors
 
 import time
 import sys

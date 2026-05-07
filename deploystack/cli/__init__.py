@@ -1,7 +1,5 @@
 import argparse
-import sys
 
-from ..utils.core import colors
 from .parser import ColoredArgumentParser
 
 from ..cmds.deploy.main import deploy

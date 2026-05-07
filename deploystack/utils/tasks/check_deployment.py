@@ -4,7 +4,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 
-from ...utils.core import colors
+from ..core import colors
 
 MARKER_FILE = "/var/lib/openstack_installer/deploy_complete"
 

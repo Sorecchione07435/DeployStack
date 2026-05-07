@@ -4,7 +4,7 @@ import string
 import socket
 from time import sleep, time
 
-from . import colors
+from ....utils.core import colors
 
 import subprocess
 import sys

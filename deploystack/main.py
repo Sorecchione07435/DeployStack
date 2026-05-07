@@ -5,7 +5,8 @@ import shutil
 import sys
 import uuid
 
-from .cli import build_parser, colors, COMMANDS
+from .utils.core import colors
+from .cli import build_parser, COMMANDS
 
 def print_banner():
     print(f"{colors.BRIGHT_BLUE}Welcome to DeployStack Utility{colors.RESET}\n")

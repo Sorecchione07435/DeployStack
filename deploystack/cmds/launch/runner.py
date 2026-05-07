@@ -7,7 +7,6 @@ import uuid
 import shutil
 import base64
 import crypt
-from pathlib import Path
 
 from ...utils.core import colors
 from ...templates import CLOUD_CONFIG_LINUX, CLOUD_CONFIG_LINUX_NO_ROOT

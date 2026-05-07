@@ -1,6 +1,5 @@
 # Configure the Image service (Glance)
 
-import urllib.request
 import os
 
 from ..utils.core.commands import run_command, run_command_sync
