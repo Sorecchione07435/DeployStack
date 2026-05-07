@@ -7,11 +7,11 @@ if sys.platform.startswith("win"):
 setup(
     name="DeployStack",
     version="1.0.0",
-    description="DeployStack is a command-line utility for deploying OpenStack on your system.",
+    description="DeployStack is a command-line utility for deploying OpenStack on Debian.",
     long_description=open("README.md", "r", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/Sorecchione07435/DeployStack",
-    packages=find_packages(),  # trova la cartella deploystack
+    packages=find_packages(),
     install_requires=[
         "psutil",
         "python-dotenv",
@@ -20,7 +20,7 @@ setup(
     python_requires=">=3.10",
     entry_points={
         "console_scripts": [
-            "deploystack=deploystack.main:main",  # ora corretto
+            "deploystack=deploystack.main:main",
         ],
     },
     classifiers=[
