@@ -15,7 +15,9 @@ setup(
     install_requires=[
         "psutil",
         "python-dotenv",
-        "PyYAML"
+        "PyYAML",
+        "requests",
+        "tqdm"
     ],
     python_requires=">=3.10",
     entry_points={
