@@ -8,6 +8,9 @@ venv/
 .env/
 
 .vscode/
+
+deploystack/deploystack
+
 OpenStack-Deployer.wiki/
 DeployStack.egg-info/
 

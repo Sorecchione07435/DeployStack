@@ -11,36 +11,13 @@ import crypt
 from ...utils.core import colors
 from ...templates import CLOUD_CONFIG_LINUX, CLOUD_CONFIG_LINUX_NO_ROOT
 
-logger = logging.getLogger(__name__)
+from ..shell import _run, _os, _os_value, logger
 
 SSH_KEY_PATH = os.path.expanduser("~/.ssh/")
 DEFAULT_FLAVOR  = "m1.tiny"
 DEFAULT_IMAGE   = "cirros"
 DEFAULT_NETWORK = "internal"
 EXTERNAL_NET    = "public"
-
-def _run(args: list[str], check=True) -> subprocess.CompletedProcess:
-    try:
-        return subprocess.run(
-            args, capture_output=True, text=True, timeout=60, check=check
-        )
-    except FileNotFoundError:
-        logger.error("'openstack' CLI not found in PATH")
-        sys.exit(1)
-    except subprocess.TimeoutExpired:
-        logger.error(f"Timeout executing: {' '.join(args)}")
-        sys.exit(1)
-
-
-def _os(*args) -> str:
-    result = _run(["openstack"] + list(args))
-    return result.stdout.strip()
-
-
-def _os_value(*args) -> str:
-    result = _run(["openstack"] + list(args) + ["-f", "value"])
-    return result.stdout.strip().splitlines()[0] if result.stdout.strip() else ""
-
 
 def ensure_keypair(key_path: str = SSH_KEY_PATH, name: str = None) -> str:
 
@@ -59,7 +36,7 @@ def ensure_keypair(key_path: str = SSH_KEY_PATH, name: str = None) -> str:
 
     existing = _os("keypair", "list", "-f", "value", "-c", "Name")
     if keypair_name not in existing.splitlines():
-        print(f"Registering keypair '{keypair_name}' in OpenStack ...")
+        print(f"Registering keypair '{keypair_name}' in OpenStack ...\n")
         _os("keypair", "create", "--public-key", pub_key_path, keypair_name)
     else:
         print(f"Keypair '{keypair_name}' already exists in OpenStack")
@@ -254,7 +231,7 @@ def create_server_with_password(
     """Create server with cloud-init user config and return its ID."""
     config_drive_file_path = generate_user_config(os_type, username, password, public_key)
 
-    print(f"\nLaunching instance '{name}' ...\n")
+    print(f"Launching instance '{name}' ...\n")
 
     try:
         result = _run([
@@ -342,7 +319,6 @@ def print_summary(name: str, fip: str, key_path: str | None, is_password: bool,
             f"  username: {username}\n"
             f"  password: {password}"
         )
-
 
 def launch(
     name: str           = "cirros-instance",
