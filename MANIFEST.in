@@ -1,1 +1,1 @@
-recursive-include deploystack/templates *.yaml
+recursive-include deploystack/templates *
