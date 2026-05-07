@@ -24,7 +24,6 @@ def init_parser(subparsers):
         "--arch",
         choices=["amd64", "arm64", "x86_64", "aarch64"],
         default="amd64",
-        required=True,
         help="CPU architecture of the image (default: amd64)"
     )
 
@@ -43,8 +42,6 @@ def init_parser(subparsers):
     parser.add_argument(
         "--visibility",
         choices=["public", "private", "shared"],
-        default="public",
-        required=True,
         help="Visibility of the image in Glance (default: public)"
     )
 
