@@ -53,19 +53,6 @@ pip install .
 
 ---
 
-## 5. Install additional dependencies (optional)
-
-Most Python dependencies are installed automatically by pip.
-If you prefer, you can also install system packages:
-
-```bash
-sudo apt install python3-dotenv python3-psutil python3-yaml -y
-```
-
-> Recommended: using pip inside the virtual environment is safer for development.
-
----
-
 ## 6. Run DeployStack
 
 With the virtual environment active:

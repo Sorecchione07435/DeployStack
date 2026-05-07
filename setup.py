@@ -17,7 +17,8 @@ setup(
         "python-dotenv",
         "PyYAML",
         "requests",
-        "tqdm"
+        "tqdm",
+        "bs4"
     ],
     python_requires=">=3.10",
     entry_points={
