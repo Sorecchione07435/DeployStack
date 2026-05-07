@@ -1,10 +1,9 @@
 import subprocess
 from .spinner import Spinner
-from ....utils.core import colors
+from ...utils.core import colors
 
 import time
 import sys
-
 
 def run_command_output(cmd, ignore_errors=False):
 
