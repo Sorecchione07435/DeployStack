@@ -165,8 +165,6 @@ def validate_neutron(config) -> bool:
 
     ovs_create_bridges = get(config, "neutron.ovs.CREATE_BRIDGES")
 
-    tenant_network_type = get(config, "neutron.tenant_network")
-
     public_bridge_interface_ovs = get(config, "neutron.ovs.PUBLIC_BRIDGE_INTERFACE")
 
     if ovs_create_bridges not in ("yes", "no"):
@@ -183,8 +181,8 @@ def validate_neutron(config) -> bool:
             print(f"{colors.RED}Error: Invalid network type '{net_type}' specified in field {net}{colors.RESET}")
             ok = False
 
-    if tenant_network_type not in ["geneve", "flat"]:
-        print(f"{colors.RED}Error: Invalid network type '{net_type}' specified in field {public_bridge_interface_ovs}{colors.RESET}")
+    if tenant_type not in ["geneve", "flat"]:
+        print(f"{colors.RED}Error: Invalid network type '{net_type}' specified in field {tenant_type}{colors.RESET}")
         ok = False
 
     if not tenant_type and not vni_range and neutron_driver == "ovn":
