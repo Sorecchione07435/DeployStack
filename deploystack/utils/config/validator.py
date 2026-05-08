@@ -182,7 +182,7 @@ def validate_neutron(config) -> bool:
             ok = False
 
     if tenant_type not in ["geneve", "flat"]:
-        print(f"{colors.RED}Error: Invalid network type '{net_type}' specified in field {tenant_type}{colors.RESET}")
+        print(f"{colors.RED}Error: Invalid network type '{tenant_type}' specified in field neutron.tenant_network.TYPE{colors.RESET}")
         ok = False
 
     if not tenant_type and not vni_range and neutron_driver == "ovn":
