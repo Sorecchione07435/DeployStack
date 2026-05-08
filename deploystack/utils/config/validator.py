@@ -163,7 +163,15 @@ def validate_neutron(config) -> bool:
 
     networks = get_provider_networks(config)
 
+    ovs_create_bridges = get(config, "neutron.ovs.CREATE_BRIDGES")
+
+    tenant_network_type = get(config, "neutron.tenant_network")
+
     public_bridge_interface_ovs = get(config, "neutron.ovs.PUBLIC_BRIDGE_INTERFACE")
+
+    if ovs_create_bridges not in ("yes", "no"):
+            print(f"{colors.RED}Error: '{ovs_create_bridges}' must be 'yes' or 'no' (got '{value}'){colors.RESET}")
+            ok = False
 
     if not interface_exists(public_bridge_interface_ovs):
         print(f"{colors.RED}The interface '{public_bridge_interface_ovs}' specified in neutron.ovs.PUBLIC_BRIDGE_INTERFACE does not exist.{colors.RESET}")
@@ -174,6 +182,10 @@ def validate_neutron(config) -> bool:
         if net_type not in ["geneve", "flat"]:
             print(f"{colors.RED}Error: Invalid network type '{net_type}' specified in field {net}{colors.RESET}")
             ok = False
+
+    if tenant_network_type not in ["geneve", "flat"]:
+        print(f"{colors.RED}Error: Invalid network type '{net_type}' specified in field {public_bridge_interface_ovs}{colors.RESET}")
+        ok = False
 
     if not tenant_type and not vni_range and neutron_driver == "ovn":
         print(f"{colors.RED}Error: neutron.tenant_network.TYPE or VNI_RANGE not set{colors.RESET}")
@@ -228,10 +240,12 @@ def validate_compute(config) -> bool:
 # --- Optional services ---
 def validate_optional_services(config) -> bool:
     ok = True
+
     services = [
         "optional_services.INSTALL_CINDER",
         "optional_services.INSTALL_HORIZON",
     ]
+
     for field in services:
         value = get(config, field)
         if value not in ("yes", "no"):
