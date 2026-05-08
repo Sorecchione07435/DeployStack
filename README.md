@@ -1,6 +1,9 @@
 # DeployStack
 
+![alt text](deploystack_banner.png)
+
 DeployStack is a command-line utility for deploying OpenStack on Debian.  
+
 The instructions below describe a **temporary installation** method for development or testing, until an official `.deb` package is released.
 
 ---
