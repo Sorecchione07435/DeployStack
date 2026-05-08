@@ -158,6 +158,7 @@ def add_default_keypair(config):
 
     if not success: return False
 
+    os.chmod(key_file, 600)
     print(f"{colors.YELLOW}Keypair '{key_name}' created and saved to {key_file}{colors.RESET}")
     return True
 
