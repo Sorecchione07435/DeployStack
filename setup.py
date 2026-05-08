@@ -10,7 +10,7 @@ setup(
     description="DeployStack is a command-line utility for deploying OpenStack on Debian.",
     long_description=open("README.md", "r", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
-    url="https://github.com/Sorecchione07435/DeployStack",
+    url="https://github.com/St3vSoft/DeployStack",
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
