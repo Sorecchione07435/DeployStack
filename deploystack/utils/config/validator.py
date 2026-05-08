@@ -170,8 +170,9 @@ def validate_neutron(config) -> bool:
         ok = False
 
     for net in networks:
-        if net["type"] != "geneve" and net["type"] != "flat":
-            print(f"{colors.RED}Error: Invalid network type '{net["type"]}' specified in field {net}{colors.RESET}")
+        net_type = net["type"]
+        if net_type not in ["geneve", "flat"]:
+            print(f"{colors.RED}Error: Invalid network type '{net_type}' specified in field {net}{colors.RESET}")
             ok = False
 
     if not tenant_type and not vni_range and neutron_driver == "ovn":
