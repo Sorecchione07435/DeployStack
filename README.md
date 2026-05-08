@@ -26,11 +26,9 @@ sudo apt install python3-pip python3-venv git -y
 Clone DeployStack into a directory of your choice (e.g., in your home folder):
 
 ```bash
-git clone https://github.com/Sorecchione07435/DeployStack.git ~/DeployStack
+git clone https://github.com/St3vSoft/DeployStack.git ~/DeployStack
 cd ~/DeployStack
 ```
-
-test
 
 ---
 
