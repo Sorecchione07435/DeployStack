@@ -41,6 +41,7 @@ def init_parser(subparsers):
     parser.add_argument(
         "--visibility",
         choices=["public", "private", "shared"],
+        default="public",
         help="Visibility of the image in Glance (default: public)"
     )
 
