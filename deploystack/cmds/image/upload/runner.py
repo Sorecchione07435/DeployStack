@@ -1,7 +1,6 @@
 import requests
 import os as os_module
 import tempfile
-import itertools
 import subprocess
 import time
 import sys
@@ -10,7 +9,7 @@ from tqdm import tqdm
 
 from ....utils.core import colors
 
-from ...shell import _run, _os, _os_value
+from ...shell import _run
 
 from .dictionary import get_image_url
 

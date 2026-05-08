@@ -1,5 +1,3 @@
-import argparse
-import os as os_module
 import sys
 
 from ....utils.tasks.check_deployment import is_openstack_ready

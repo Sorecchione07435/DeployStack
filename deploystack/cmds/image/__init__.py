@@ -1,5 +1,3 @@
-import argparse
-
 from .upload.main import init_parser as upload_init_parser
 from .remove.main import init_parser as remove_init_parser
 
