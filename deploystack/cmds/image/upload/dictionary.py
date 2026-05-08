@@ -96,4 +96,11 @@ def get_image_url(os:str, version: str, arch: str) -> str:
 
         return url
 
-    raise ValueError(f"No image found for OS='{os_name}', version='{version}', arch='{arch}'")
+    print(
+    f"{colors.RED}[ERROR]{colors.RESET} No matching image found for:\n"
+    f"  OS          : {colors.YELLOW}{os_name}{colors.RESET}\n"
+    f"  Version     : {colors.YELLOW}{version}{colors.RESET}\n"
+    f"  Architecture: {colors.YELLOW}{arch}{colors.RESET}\n"
+    )
+    
+    print(f"Please verify your OS, version, or architecture and try again.")
