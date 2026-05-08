@@ -11,7 +11,7 @@ def remove_glance_image(identifier: str, timeout: int = 30) -> bool:
     try:
         _run(remove_image_cmd, True)
     except subprocess.CalledProcessError as e:
-        print(f"{colors.RED}Error while trying to delete image: {e}{colors.RESET}")
+        print(f"\n{colors.RED}Error while trying to delete image: {e}{colors.RESET}")
         return False
 
     start_time = time.time()
@@ -30,7 +30,7 @@ def remove_glance_image(identifier: str, timeout: int = 30) -> bool:
             pass
         time.sleep(2)
 
-    print(f"{colors.RED}Timeout: image {identifier} was not deleted.{colors.RESET}")
+    print(f"\n{colors.RED}Timeout: image {identifier} was not deleted.{colors.RESET}")
     return False
 
 def remove_image(
