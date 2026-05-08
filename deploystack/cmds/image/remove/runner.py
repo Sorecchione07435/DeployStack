@@ -49,7 +49,7 @@ def remove_image(
         print(f"Removing image with Name: {image_name} ...")
 
     if remove_glance_image(image_identifier, timeout):
-        print(f"{colors.GREEN}Image '{image_identifier}' successfully deleted{colors.RESET}")
+        print(f"\n{colors.GREEN}Image '{image_identifier}' successfully deleted{colors.RESET}")
     else:
         sys.exit(1)
 
