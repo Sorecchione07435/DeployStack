@@ -30,6 +30,8 @@ git clone https://github.com/Sorecchione07435/DeployStack.git ~/DeployStack
 cd ~/DeployStack
 ```
 
+test
+
 ---
 
 ## 3. Create a Python virtual environment
