@@ -60,7 +60,6 @@ def validate_host_network(config) -> bool:
             print(f"{colors.RED}Error: Field '{field}' is missing.{colors.RESET}")
         elif not validate_ip(value, field):
             ok = False
-            print(f"{colors.RED}Error: Field '{field}' has invalid IP: {value}{colors.RESET}")
 
     return ok
 
