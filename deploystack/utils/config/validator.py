@@ -31,6 +31,40 @@ def validate_passwords(config) -> bool:
     return ok
 
 # --- Public network ---
+
+def validate_host_network(config) -> bool:
+
+    ok = True
+
+    host_network_fields = [
+        "network.HOST_IP",
+        "network.HOST_IP_NETMASK",
+    ]
+
+    cidr_fields = ["network.HOST_IP_CIDR"]
+
+    for field in cidr_fields:
+        value = get(config, field)
+        if not value:
+            ok = False
+            print(f"{colors.RED}Error: Field '{field}' is missing.{colors.RESET}")
+        elif not validate_cidr(value, field):
+            ok = False
+            print(f"{colors.RED}Error: Field '{field}' has invalid CIDR: {value}{colors.RESET}")
+
+    # Validate IP fields
+    for field in host_network_fields:
+        value = get(config, field)
+        if not value:
+            ok = False
+            print(f"{colors.RED}Error: Field '{field}' is missing.{colors.RESET}")
+        elif not validate_ip(value, field):
+            ok = False
+            print(f"{colors.RED}Error: Field '{field}' has invalid IP: {value}{colors.RESET}")
+
+    return ok
+
+
 def validate_public_network(config) -> bool:
 
     ok = True
@@ -186,6 +220,7 @@ def validate_openstack(config) -> bool:
 def validate_all(config) -> bool:
     ok = True
     ok &= validate_passwords(config)
+    ok &= validate_host_network(config)
     ok &= validate_public_network(config)
     ok &= validate_neutron(config)
     ok &= validate_cinder(config)
