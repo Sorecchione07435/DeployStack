@@ -1,7 +1,26 @@
 import ipaddress
+import psutil
 
 from .parser import get
 from ..core import colors
+
+def get_provider_networks(config):
+
+    networks_list = get(config, "provider_networks", [])
+    result = []
+
+    for net in networks_list:
+        net_info = {
+            "bridge": net.get("bridge"),
+            "name": net.get("name"),
+            "type": net.get("type")
+        }
+        result.append(net_info)
+
+    return result
+
+def interface_exists(if_name: str) -> bool:
+    return if_name in psutil.net_if_addrs()
 
 def validate_ip(value: str, field_name: str) -> bool:
     try:
@@ -141,6 +160,20 @@ def validate_neutron(config) -> bool:
     neutron_driver = get(config, "neutron.DRIVER")
     tenant_type = get(config, "neutron.tenant_network.TYPE")
     vni_range = get(config, "neutron.tenant_network.VNI_RANGE")
+
+    networks = get_provider_networks(config)
+
+    public_bridge_interface_ovs = get(config, "neutron.ovs.PUBLIC_BRIDGE_INTERFACE")
+
+    if not interface_exists(public_bridge_interface_ovs):
+        print(f"{colors.RED}The interface '{public_bridge_interface_ovs}' specified in neutron.ovs.PUBLIC_BRIDGE_INTERFACE does not exist.{colors.RESET}")
+        ok = False
+
+    for net in networks:
+        if net["type"] != "geneve" and net["type"] != "flat":
+            print(f"{colors.RED}Error: Invalid network type '{net["type"]}' specified in field {net}{colors.RESET}")
+            ok = False
+
     if not tenant_type and not vni_range and neutron_driver == "ovn":
         print(f"{colors.RED}Error: neutron.tenant_network.TYPE or VNI_RANGE not set{colors.RESET}")
         ok = False
