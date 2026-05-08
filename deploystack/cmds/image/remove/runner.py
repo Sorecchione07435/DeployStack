@@ -9,7 +9,7 @@ def remove_glance_image(identifier: str, timeout: int = 30) -> bool:
     remove_image_cmd = ["openstack", "image", "delete", identifier]
 
     try:
-        _run(remove_image_cmd, True, False, False)
+        _run(remove_image_cmd, True)
     except subprocess.CalledProcessError as e:
         print(f"{colors.RED}Error while trying to delete image: {e}{colors.RESET}")
         return False
