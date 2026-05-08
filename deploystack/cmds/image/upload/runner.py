@@ -118,6 +118,7 @@ def upload_glance_image(
 
 def upload_image(
     os: str,
+    image_name: str,
     version: str,
     visibility: str,
     output_dir: str,
@@ -132,7 +133,11 @@ def upload_image(
     if not output_dir:
         output_dir = "/tmp"
 
-    temp_file_path = generate_temp_filename(os, version, arch, url=image_url, temp_dir=output_dir)
+    if not image_name:
+        temp_file_path = generate_temp_filename(os, version, arch, url=image_url, temp_dir=output_dir)
+    else:
+        temp_file_path = image_name
+
     temp_file_name = os_module.path.splitext(os_module.path.basename(temp_file_path))[0]
 
     download_file(image_url, temp_file_path)

@@ -14,7 +14,7 @@ def init_parser(subparsers):
     )
 
     parser.add_argument(
-        "--name",
+        "--image-name",
         dest="image_name",
         help="Custom image name (if not provided, a default name will be used)"
     )
@@ -76,6 +76,7 @@ def upload(parser, args) -> None:
 
     upload_image(
         args.os,
+        args.image_name,
         args.version,
         args.visibility,
         args.output_dir,
