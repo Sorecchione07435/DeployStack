@@ -31,8 +31,16 @@ def validate_passwords(config) -> bool:
     return ok
 
 # --- Public network ---
+# --- Public network ---
 def validate_public_network(config) -> bool:
+    """
+    Validate the public network configuration and print errors if any.
+    
+    Returns:
+        ok (bool): True if all fields are valid, False otherwise.
+    """
     ok = True
+
     ip_fields = [
         "public_network.PUBLIC_SUBNET_GATEWAY",
         "public_network.PUBLIC_SUBNET_RANGE_START",
@@ -40,21 +48,32 @@ def validate_public_network(config) -> bool:
     ]
     cidr_fields = ["public_network.PUBLIC_SUBNET_CIDR"]
 
+    # Validate CIDR fields
     for field in cidr_fields:
         value = get(config, field)
-        if not value or not validate_cidr(value, field):
+        if not value:
             ok = False
+            print(f"[ERROR] Field '{field}' is missing.")
+        elif not validate_cidr(value, field):
+            ok = False
+            print(f"[ERROR] Field '{field}' has invalid CIDR: {value}")
 
+    # Validate IP fields
     for field in ip_fields:
         value = get(config, field)
-        if not value or not validate_ip(value, field):
+        if not value:
             ok = False
+            print(f"[ERROR] Field '{field}' is missing.")
+        elif not validate_ip(value, field):
+            ok = False
+            print(f"[ERROR] Field '{field}' has invalid IP: {value}")
 
+    # Validate DNS servers
     dns_servers = get(config, "public_network.PUBLIC_SUBNET_DNS_SERVERS", [])
-    if dns_servers:
-        for i, dns in enumerate(dns_servers):
-            if not validate_ip(dns, f"public_network.PUBLIC_SUBNET_DNS_SERVERS[{i}]"):
-                ok = False
+    for i, dns in enumerate(dns_servers):
+        if not validate_ip(dns, f"public_network.PUBLIC_SUBNET_DNS_SERVERS[{i}]"):
+            ok = False
+            print(f"[ERROR] DNS server at index {i} is invalid: {dns}")
 
     return ok
 
