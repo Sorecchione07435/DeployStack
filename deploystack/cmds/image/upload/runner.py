@@ -12,9 +12,19 @@ from ....utils.core import colors
 
 from ...shell import _run, _os, _os_value
 
-from .dictionary import get_image_url, get_latest_centos_url
+from .dictionary import get_image_url
 
-def generate_temp_filename(os_name: str, version: str, arch: str, ext: str = ".qcow2", temp_dir: str = None) -> str:
+OS_ADMIN_USERS = {
+    "ubuntu": "ubuntu",
+    "debian": "debian",
+    "fedora": "fedora",
+    "centos": "cloud-user",
+    "opensuse": "opensuse",
+}
+
+def generate_temp_filename(os_name: str, version: str, arch: str, url: str, temp_dir: str = None) -> str:
+
+    ext = os_module.path.splitext(url)[-1]
 
     if temp_dir is None:
         temp_dir = tempfile.gettempdir()
@@ -60,7 +70,7 @@ def wait_for_image(image_name, timeout=300):
         if time.time() - start > timeout:
             raise TimeoutError(f"Image {image_name} did not become active in {timeout} seconds")
         time.sleep(5)
-    print()  # vai a capo alla fine
+    print()
 
 def upload_glance_image(
         filepath: str,
@@ -68,9 +78,11 @@ def upload_glance_image(
         os: str,
         visibility: str,
         timeout: int
-    ):
+    ) -> bool:
     
     print(f"\nUploading image '{name}' ...\n")
+
+    admin_user = OS_ADMIN_USERS[os]
 
     create_image_cmd = [
         "openstack", "image", "create",
@@ -79,7 +91,7 @@ def upload_glance_image(
         "--file", filepath,
         "--property", "os_type=linux",
         "--property", f"os_distro={os}",
-        "--property", "os_admin_user=root"
+        "--property", f"os_admin_user={admin_user}"
     ]
 
     if visibility == "public":
@@ -92,7 +104,7 @@ def upload_glance_image(
     create_image_cmd.append(f"{name}")
     
     try:
-        result = _run(create_image_cmd)
+        _run(create_image_cmd)
 
         wait_for_image(name, timeout)
 
@@ -120,15 +132,14 @@ def upload_image(
     if not output_dir:
         output_dir = "/tmp"
 
-    temp_file_path = generate_temp_filename(os, version, arch, temp_dir=output_dir)
+    temp_file_path = generate_temp_filename(os, version, arch, url=image_url, temp_dir=output_dir)
     temp_file_name = os_module.path.splitext(os_module.path.basename(temp_file_path))[0]
 
     download_file(image_url, temp_file_path)
 
     if upload_glance_image(temp_file_path, temp_file_name, os, visibility, timeout):
         print(f"\n{colors.GREEN}Image successfully uploaded{colors.RESET}")
-        print()
-        print(f"You can now launch instances with the new image uploaded with 'deploystack launch --image {temp_file_name}'")
+        print(f"    You can now launch instances with the new image uploaded with 'deploystack launch --image {temp_file_name}'")
 
     if not keep:
         os_module.remove(temp_file_path)

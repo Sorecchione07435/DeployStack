@@ -7,6 +7,11 @@ from .urls import CLOUD_IMAGE_URLS, debian_version_urls, centos_version_urls, ce
 
 from ....utils.core import colors
 
+ARCH_MAP = {
+    "amd64":  {"centos": "x86_64", "fedora": "x86_64"},
+    "arm64":  {"centos": "aarch64", "fedora": "aarch64"},
+}
+
 def get_latest_centos_url(version: str, arch: str) -> str:
 
     internal_ver = centos_version_map.get(version, version)
@@ -20,7 +25,6 @@ def get_latest_centos_url(version: str, arch: str) -> str:
         r = requests.get(base_url)
         r.raise_for_status()
     except requests.HTTPError as e:
-        #raise RuntimeError(f"Unable to fetch CentOS images: {e}")
         print(f"Unable to fetch CentOS images with exception:\n {colors.RED}{e}{colors.RESET}")
         sys.exit(1)
 
@@ -38,9 +42,10 @@ def get_latest_centos_url(version: str, arch: str) -> str:
 def get_image_url(os:str, version: str, arch: str) -> str:
 
     os_name = os.lower()
+    mapped_arch = ARCH_MAP.get(arch, {}).get(os_name, arch)
 
     if os_name == "centos":
-        return get_latest_centos_url(version, arch)
+        return get_latest_centos_url(version, mapped_arch)
     
     elif os_name == "ubuntu":
 
@@ -74,10 +79,11 @@ def get_image_url(os:str, version: str, arch: str) -> str:
             sys.exit(1)
     
         url_template = fedora_version_urls[version]
-        return url_template.format(arch=arch)
+        return url_template.format(arch=mapped_arch)
 
     if os_name in CLOUD_IMAGE_URLS:
         template = CLOUD_IMAGE_URLS[os_name]
+        url = template.format(version=version, arch=mapped_arch)
       
         try:
             r = requests.head(url)
@@ -88,5 +94,6 @@ def get_image_url(os:str, version: str, arch: str) -> str:
             print(f"{colors.RED}Failed to check image on URL: {e}{colors.RESET}")
             sys.exit(1)
 
+        return url
 
     raise ValueError(f"No image found for OS='{os_name}', version='{version}', arch='{arch}'")

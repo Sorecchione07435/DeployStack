@@ -159,7 +159,7 @@ def config_openstack(
     config_dict["compute"]["NOVA_COMPUTE_VIRT_TYPE"] = virt_type
     config_dict["compute"]["CPU_ALLOCATION_RATIO"] = 4.0
     config_dict["compute"]["RAM_ALLOCATION_RATIO"] = 1.5
-    config_dict["compute"]["DISK_ALLOCATION_RATIO"] = 1.0
+    config_dict["compute"]["DISK_ALLOCATION_RATIO"] = 1.5
 
     # OpenStack
     config_dict.setdefault("openstack", {})

@@ -157,6 +157,30 @@ if __name__ == "__main__":
 
     exit(0 if endpoint_result.ok else 1)
 
+def is_openstack_ready() -> bool:
+    
+    base_check = check_deployment(include_endpoints=False)
+    if not base_check.ok or not os.path.exists(MARKER_FILE):
+        print(f"{colors.RED}OpenStack is not deployed yet.{colors.RESET}\n")
+        print(f"{colors.YELLOW}  • Run 'deploy --allinone' for a full automated deployment{colors.RESET}")
+        print(f"{colors.YELLOW}  • Or run 'deploy --config-file <config_file>' with a custom config{colors.RESET}\n")
+        return False
+
+    try:
+        check_env_variables()
+    except RuntimeError:
+        print(f"{colors.YELLOW}Shell is not authenticated. Source the environment file first:{colors.RESET}\n")
+        print(f"  {colors.YELLOW}source /root/admin-openrc.sh{colors.RESET}  or")
+        print(f"  {colors.GREEN}source /root/demo-openrc.sh{colors.RESET}\n")
+        return False
+
+    endpoint_check = check_deployment(include_endpoints=True)
+    if not endpoint_check.ok:
+        print(f"{colors.RED}OpenStack is deployed but services are not fully operational:{colors.RESET}")
+        print(endpoint_check)
+        return False
+
+    return True
 
 def mark_deployment_complete():
     os.makedirs(os.path.dirname(MARKER_FILE), exist_ok=True)

@@ -1,10 +1,9 @@
 import argparse
-
 import os as os_module
+import sys
 
-from ....utils.core import colors
-
-from ....utils.tasks.check_deployment import check_deployment, check_env_variables, MARKER_FILE 
+from ....utils.tasks.check_deployment import is_openstack_ready
+from .runner import remove_image
 
 def init_parser(subparsers):
 
@@ -17,38 +16,36 @@ def init_parser(subparsers):
 
     group.add_argument(
         "--image-id",
+        dest="image_id",
         help="Glance Image ID"
     )
 
     group.add_argument(
         "--image-name",
+        dest="image_name",
         help="Glance Image Name"
     )
 
+    parser.add_argument(
+        "--timeout",
+        default=300,
+        dest="timeout",
+        type=int,
+        help="Maximum time to wait to check if the image has been deleted in OpenStack (default: 300s)"
+    )
 
 def remove(parser, args) -> None:
 
     if args.command is None:
         parser.print_help()
-        parser.exit()
+        parser.exit(1)
 
-    base_check = check_deployment(include_endpoints=False)
-    if not base_check.ok or not os_module.path.exists(MARKER_FILE):
-        print(f"{colors.RED}OpenStack is not deployed yet.{colors.RESET}\n")
-        print(f"{colors.YELLOW}  • Run 'deploy --allinone' for a full automated deployment{colors.RESET}")
-        print(f"{colors.YELLOW}  • Or run 'deploy --config-file <config_file>' with a custom config{colors.RESET}\n")
-        return
+    if not is_openstack_ready():
+        sys.exit(1)
 
-    try:
-        check_env_variables()
-    except RuntimeError:
-        print(f"{colors.YELLOW}Shell is not authenticated. Source the environment file first:{colors.RESET}\n")
-        print(f"  {colors.YELLOW}source /root/admin-openrc.sh{colors.RESET}  or")
-        print(f"  {colors.GREEN}source /root/demo-openrc.sh{colors.RESET}\n")
-        return
+    if args.image_id:
+        remove_image(None, args.image_id, args.timeout)
+    elif args.image_name:
+        remove_image(args.image_name, None, args.timeout)
 
-    endpoint_check = check_deployment(include_endpoints=True)
-    if not endpoint_check.ok:
-        print(f"{colors.RED}OpenStack is deployed but services are not fully operational:{colors.RESET}")
-        print(endpoint_check)
-        return
+   
