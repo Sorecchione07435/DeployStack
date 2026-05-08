@@ -102,5 +102,6 @@ def get_image_url(os:str, version: str, arch: str) -> str:
     f"  Version     : {colors.YELLOW}{version}{colors.RESET}\n"
     f"  Architecture: {colors.YELLOW}{arch}{colors.RESET}\n"
     )
-    
+
     print(f"Please verify your OS, version, or architecture and try again.")
+    sys.exit(1)
