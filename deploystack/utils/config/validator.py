@@ -6,7 +6,7 @@ from ..core import colors
 
 def get_provider_networks(config):
 
-    networks_list = get(config, "provider_networks", [])
+    networks_list = get(config, "neutron.provider_networks", [])
     result = []
 
     for net in networks_list:
