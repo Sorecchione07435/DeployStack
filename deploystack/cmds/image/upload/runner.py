@@ -133,18 +133,25 @@ def upload_image(
     if not output_dir:
         output_dir = "/tmp"
 
-    if not image_name:
-        temp_file_path = generate_temp_filename(os, version, arch, url=image_url, temp_dir=output_dir)
-    else:
-        temp_file_path = image_name
+    temp_file_path = generate_temp_filename(os, version, arch, url=image_url, temp_dir=output_dir)
 
     temp_file_name = os_module.path.splitext(os_module.path.basename(temp_file_path))[0]
 
     download_file(image_url, temp_file_path)
 
-    if upload_glance_image(temp_file_path, temp_file_name, os, visibility, timeout):
+    glance_image_name: str
+
+    if not image_name:
+        glance_image_name = temp_file_name
+    else:
+        glance_image_name = image_name
+
+    if upload_glance_image(temp_file_path, glance_image_name, os, visibility, timeout):
+
+        safe_image_name = glance_image_name.replace(" ", "_")
+
         print(f"\n{colors.GREEN}Image successfully uploaded{colors.RESET}")
-        print(f"    You can now launch instances with the new image uploaded with 'deploystack launch --image {temp_file_name}'")
+        print(f"    You can now launch instances with the new image uploaded with 'deploystack launch --image {safe_image_name}'")
 
     if not keep:
         os_module.remove(temp_file_path)
