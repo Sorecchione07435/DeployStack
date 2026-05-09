@@ -8,6 +8,13 @@ from ..utils.core.system_utils import nc_wait
 from ..utils.core import colors
 
 def set_openstack_release(config):
+
+  
+    UBUNTU_CLOUD_ARCHIVE_CODENAMES = {
+    "jammy":  "jammy-updates/caracal",   # Ubuntu 22.04
+    "focal":  "focal-updates/yoga",       # Ubuntu 20.04
+}
+    
     release = get(config, "openstack.OPENSTACK_RELEASE", "caracal").lower()
 
     try:
@@ -18,17 +25,20 @@ def set_openstack_release(config):
         return False
 
     if distro_id == "ubuntu":
-        repo_line = f"deb http://ubuntu-cloud.archive.canonical.com/ubuntu {distro_codename}-updates/{release} main"
-        repo_file = f"/etc/apt/sources.list.d/cloud-archive-{release}.list"
+        if distro_codename in UBUNTU_CLOUD_ARCHIVE_CODENAMES:
+            pocket = UBUNTU_CLOUD_ARCHIVE_CODENAMES[distro_codename]
+            repo_line = f"deb http://ubuntu-cloud.archive.canonical.com/ubuntu {pocket} main"
+            repo_file = f"/etc/apt/sources.list.d/cloud-archive-{release}.list"
 
-        keyring_url = "https://ubuntu-cloud.archive.canonical.com/ubuntu/dists/jammy-updates/main/binary-amd64/Packages"
-        run_command(
-            ["apt-key", "adv", "--keyserver", "keyserver.ubuntu.com", "--recv-keys", "EC4926EA"],
-            "Adding Ubuntu Cloud Archive keyring...", ignore_errors=True
-        )
+            run_command(
+                ["apt-key", "adv", "--keyserver", "keyserver.ubuntu.com", "--recv-keys", "EC4926EA"],
+                "Adding Ubuntu Cloud Archive keyring...", ignore_errors=True
+            )
 
-        with open(repo_file, "w") as f:
-            f.write(repo_line + "\n")
+            with open(repo_file, "w") as f:
+                f.write(repo_line + "\n")
+        else:
+            print(f"{colors.YELLOW}Ubuntu {distro_codename}: OpenStack packages available in official repos, skipping Cloud Archive.{colors.RESET}")
 
     elif distro_id == "debian":
 
