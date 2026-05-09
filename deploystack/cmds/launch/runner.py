@@ -68,11 +68,11 @@ def get_default_image(preferred: str) -> str:
             continue
         image_id, image_name = parts
         if preferred.lower() == image_name.lower():
+
             return image_id
 
     logger.error(f"No active image found with name '{preferred}'")
     sys.exit(1)
-
 
 def get_default_flavor(preferred: str = DEFAULT_FLAVOR) -> str:
     out = _os("flavor", "list", "-f", "value", "-c", "ID", "-c", "Name")

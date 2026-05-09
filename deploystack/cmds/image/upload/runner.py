@@ -167,15 +167,13 @@ def upload_image(
 
     if upload_glance_image(temp_file_path, glance_image_name, os, visibility, timeout):
 
-        safe_image_name = glance_image_name.replace(" ", "_")
-
         print(f"\n{colors.GREEN}Image successfully uploaded{colors.RESET}")
 
         if keep:
             print()
             print(f"    The downloaded image is located in the path '{temp_file_path}'\n")
 
-        print(f"    You can now launch instances with the new image uploaded with 'deploystack launch --image {safe_image_name}'")
+        print(f"    You can now launch instances with the new image uploaded with 'deploystack launch --image {glance_image_name}'")
 
     if not keep:
         os_module.remove(temp_file_path)
