@@ -1,6 +1,7 @@
 # Configure the Compute service (Nova)
 
 import os
+import stat
 
 from ..utils.core.commands import run_command, run_command_sync
 from ..utils.apt.apt import apt_install
@@ -158,7 +159,9 @@ def add_default_keypair(config):
 
     if not success: return False
 
-    os.chmod(key_file, 600)
+    os.chmod(key_file, stat.S_IRUSR | stat.S_IWUSR)
+    os.chown(key_file, os.getuid(), os.getgid())
+
     print(f"{colors.YELLOW}Keypair '{key_name}' created and saved to {key_file}{colors.RESET}")
     return True
 
