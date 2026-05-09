@@ -7,11 +7,16 @@ from ..utils.core.system_utils import nc_wait
 from ..utils.core import colors
 
 def set_openstack_release(config):
-    release = get(config, "openstack.OPENSTACK_RELEASE", "caracal")
-    message = f"Adding repository for {release} OpenStack Release..."
-    cmd = ["add-apt-repository", f"cloud-archive:{release}", "-y"]
+    release = get(config, "openstack.OPENSTACK_RELEASE", "caracal").lower()
 
-    _ = run_command(cmd, message, ignore_errors=True)
+    distro = subprocess.check_output(["lsb_release", "-cs"]).decode().strip()
+    repo_line = f"deb http://ubuntu-cloud.archive.canonical.com/ubuntu {distro}-{release} main"
+    repo_file = f"/etc/apt/sources.list.d/cloud-archive-{release}.list"
+
+    with open(repo_file, "w") as f:
+        f.write(repo_line + "\n")
+
+    run_command(["apt-get", "update" "-y"], f"Updating package lists for {release}", ignore_errors=True)
 
 def install_pkgs():
 
