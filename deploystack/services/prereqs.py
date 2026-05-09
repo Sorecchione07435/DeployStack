@@ -9,14 +9,41 @@ from ..utils.core import colors
 def set_openstack_release(config):
     release = get(config, "openstack.OPENSTACK_RELEASE", "caracal").lower()
 
-    distro = subprocess.check_output(["lsb_release", "-cs"]).decode().strip()
-    repo_line = f"deb http://ubuntu-cloud.archive.canonical.com/ubuntu {distro}-{release} main"
-    repo_file = f"/etc/apt/sources.list.d/cloud-archive-{release}.list"
+    try:
+        distro_id = subprocess.check_output(["lsb_release", "-is"]).decode().strip().lower()
+        distro_codename = subprocess.check_output(["lsb_release", "-cs"]).decode().strip().lower()
+    except subprocess.CalledProcessError:
+        print(f"{colors.RED}Failed to detect Linux distribution{colors.RESET}")
+        return False
 
-    with open(repo_file, "w") as f:
-        f.write(repo_line + "\n")
+    if distro_id == "ubuntu":
+        repo_line = f"deb http://ubuntu-cloud.archive.canonical.com/ubuntu {distro_codename}-updates/{release} main"
+        repo_file = f"/etc/apt/sources.list.d/cloud-archive-{release}.list"
 
-    if not apt_update() : return False
+        keyring_url = "https://ubuntu-cloud.archive.canonical.com/ubuntu/dists/jammy-updates/main/binary-amd64/Packages"
+        run_command(
+            ["apt-key", "adv", "--keyserver", "keyserver.ubuntu.com", "--recv-keys", "EC4926EA"],
+            "Adding Ubuntu Cloud Archive keyring...", ignore_errors=True
+        )
+
+        with open(repo_file, "w") as f:
+            f.write(repo_line + "\n")
+
+    elif distro_id == "debian":
+        # Debian uses its own OpenStack packages — no Cloud Archive needed
+        # On Debian Trixie/Bookworm, OpenStack Caracal packages are in backports or directly available
+        repo_line = f"deb http://deb.debian.org/debian {distro_codename}-backports main"
+        repo_file = f"/etc/apt/sources.list.d/debian-backports.list"
+
+        if not os.path.exists(repo_file):
+            with open(repo_file, "w") as f:
+                f.write(repo_line + "\n")
+    else:
+        print(f"{colors.YELLOW}Warning: Unknown distribution '{distro_id}'. Skipping repository setup.{colors.RESET}")
+
+    if not apt_update(): return False
+
+    return True
 
 def install_pkgs():
 
