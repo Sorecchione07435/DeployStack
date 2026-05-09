@@ -1,4 +1,4 @@
-from .utils import get_provider_networks, interface_exists, validate_ip, validate_cidr
+from .helpers import get_provider_networks, interface_exists, validate_ip, validate_cidr
 from ..core import colors
 from .parser import get
 

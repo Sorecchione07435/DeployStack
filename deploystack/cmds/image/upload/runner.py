@@ -30,7 +30,7 @@ def generate_temp_filename(os_name: str, version: str, arch: str, url: str, temp
     filename = f"{os_name}-{version}-{arch}{ext}"
     return os_module.path.join(temp_dir, filename)
 
-def download_file(url: str, output_path: str):
+def download_image(url: str, output_path: str):
     response = requests.get(url, stream=True)
     response.raise_for_status()
 
@@ -55,7 +55,7 @@ def download_file(url: str, output_path: str):
     )
     sys.stdout.flush()
 
-def is_image_already_exists(image_name) -> bool:
+def image_already_exists(image_name) -> bool:
 
     list_images_cmd = [
         "openstack", "image", "list", "-f", "value", "-c", "Name"
@@ -159,11 +159,11 @@ def upload_image(
     else:
         glance_image_name = image_name
 
-    if is_image_already_exists(glance_image_name):
+    if image_already_exists(glance_image_name):
         print(f"{colors.RED}Error: Glance image '{glance_image_name}' already exists.{colors.RESET}")
         sys.exit(1)
 
-    download_file(image_url, temp_file_path)
+    download_image(image_url, temp_file_path)
 
     if upload_glance_image(temp_file_path, glance_image_name, os, visibility, timeout):
 
