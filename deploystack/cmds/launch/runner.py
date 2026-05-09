@@ -2,11 +2,10 @@ import subprocess
 import os
 import sys
 import time
-import logging
 import uuid
 import shutil
 import base64
-import crypt
+from passlib.hash import sha512_crypt
 
 from ...utils.core import colors
 from ...templates import CLOUD_CONFIG_LINUX, CLOUD_CONFIG_LINUX_NO_ROOT
@@ -158,8 +157,7 @@ def generate_user_config(ostype: str, default_user: str, password: str,
     </powershell>
     """
 
-    salt = crypt.mksalt(crypt.METHOD_SHA512)
-    password_hash = crypt.crypt(password, salt)
+    password_hash = sha512_crypt.hash(password)
 
     template_path = (
         CLOUD_CONFIG_LINUX_NO_ROOT
