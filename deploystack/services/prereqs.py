@@ -1,4 +1,5 @@
 import subprocess
+import os
 
 from ..utils.core.commands import run_command
 from ..utils.apt.apt import apt_install, apt_update
