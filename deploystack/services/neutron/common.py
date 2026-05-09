@@ -54,6 +54,7 @@ def conf_neutron(config):
     set_conf_option(neutron_conf, "DEFAULT", "notify_nova_on_port_data_changes", "true")
 
     set_conf_option(neutron_conf, "keystone_authtoken", "www_authenticate_uri", f"http://{ip_address}:5000")
+    set_conf_option(neutron_conf, "keystone_authtoken", "region_name", os_region_name)
     set_conf_option(neutron_conf, "keystone_authtoken", "auth_url", f"http://{ip_address}:5000")
     set_conf_option(neutron_conf, "keystone_authtoken", "memcached_servers", "127.0.0.1:11211")
     set_conf_option(neutron_conf, "keystone_authtoken", "auth_type", "password")
