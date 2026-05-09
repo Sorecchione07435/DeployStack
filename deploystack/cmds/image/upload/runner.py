@@ -55,6 +55,25 @@ def download_file(url: str, output_path: str):
     )
     sys.stdout.flush()
 
+def is_image_already_exists(image_name) -> bool:
+
+    list_images_cmd = [
+        "openstack", "image", "list", "-f", "value", "-c", "Name"
+    ]
+
+    try:
+        result = subprocess.run(list_images_cmd, capture_output=True, text=True, check=True)
+        existing_images = [line.strip() for line in result.stdout.splitlines()]
+
+        if image_name not in existing_images:
+            return True
+        else:
+            return False
+
+    except subprocess.CalledProcessError as e:
+        print(f"\n{colors.RED}Error while trying to listing images: {e}{colors.RESET}")
+        sys.exit(1)
+
 def wait_for_image(image_name, timeout=300):
     start = time.time()
     while True:
@@ -132,18 +151,22 @@ def upload_image(
     if not output_dir:
         output_dir = "/tmp"
 
+    glance_image_name: str
+
     temp_file_path = generate_temp_filename(os, version, arch, url=image_url, temp_dir=output_dir)
 
     temp_file_name = os_module.path.splitext(os_module.path.basename(temp_file_path))[0]
-
-    download_file(image_url, temp_file_path)
-
-    glance_image_name: str
 
     if not image_name:
         glance_image_name = temp_file_name
     else:
         glance_image_name = image_name
+
+    if is_image_already_exists(glance_image_name):
+        print(f"{colors.RED}Error: Glance image '{glance_image_name}' already exists.{colors.RESET}")
+        sys.exit(1)
+        
+    download_file(image_url, temp_file_path)
 
     if upload_glance_image(temp_file_path, glance_image_name, os, visibility, timeout):
 
