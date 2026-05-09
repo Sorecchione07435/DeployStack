@@ -40,7 +40,7 @@ def set_openstack_release(config):
             with open(repo_file, "w") as f:
                 f.write(repo_line + "\n")
 
-        subprocess.run('debconf-set-selections <<< "debconf debconf/frontend select Noninteractive"', shell=True, check=True)
+        subprocess.run('echo "debconf debconf/frontend select Noninteractive" | debconf-set-selections', shell=True, check=True)
 
         with open(dpkg_conf, 'w') as f:
             f.write('DPkg::Options {"--force-confdef"; "--force-confold"; };')
