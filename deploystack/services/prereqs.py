@@ -31,8 +31,7 @@ def set_openstack_release(config):
             f.write(repo_line + "\n")
 
     elif distro_id == "debian":
-        # Debian uses its own OpenStack packages — no Cloud Archive needed
-        # On Debian Trixie/Bookworm, OpenStack Caracal packages are in backports or directly available
+
         repo_line = f"deb http://deb.debian.org/debian {distro_codename}-backports main"
         repo_file = f"/etc/apt/sources.list.d/debian-backports.list"
 
@@ -49,8 +48,6 @@ def set_openstack_release(config):
 def install_pkgs():
 
     print()
-    
-    if not apt_update() : return False
 
     if not apt_install(["wget", "rabbitmq-server", "python3-openstackclient", "memcached"], ux_text=f"Installing prerequisite packages..."): return False
 
