@@ -26,7 +26,7 @@ def get_image_name_from_uuid(uuid) -> str:
             return image_name
         else:
             image_name = ""
-            
+
     except subprocess.CalledProcessError as e:
         print(f"\n{colors.RED}Error while trying to getting image name: {e}{colors.RESET}")
         sys.exit(1)
@@ -100,7 +100,7 @@ def remove_image(
         print(f"Removing image with Name: {image_name} ...")
 
     if check_image_running_instances(image_identifier):
-        print(f"{colors.RED}Error: There are instances still running with the '{image_identifier}' image. Please stop them before attempting removal.{colors.RESET}")
+        print(f"\n{colors.RED}Error: There are instances still running with the '{image_identifier}' image. Please  them before attempting removal.{colors.RESET}")
         sys.exit(1)
 
     if remove_glance_image(image_identifier, timeout):
