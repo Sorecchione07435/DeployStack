@@ -28,11 +28,14 @@ def conf_glance(config):
     db_password = get(config, "passwords.DATABASE_PASSWORD")
     service_password = get(config, "passwords.SERVICE_PASSWORD")
 
+    os_region_name = get(config, "openstack.REGION_NAME")
+
     ip_address = get(config, "network.HOST_IP")
       
     set_conf_option(glance_conf, "database", "connection", f"mysql+pymysql://glance:{db_password}@{ip_address}/glance")
 
     set_conf_option(glance_conf, "keystone_authtoken", "www_authenticate_uri", f"http://{ip_address}:5000")
+    set_conf_option(glance_conf, "keystone_authtoken", "region_name", os_region_name)
     set_conf_option(glance_conf, "keystone_authtoken", "auth_url", f"http://{ip_address}:5000")
     set_conf_option(glance_conf, "keystone_authtoken", "memcached_servers", "127.0.0.1:11211")
     set_conf_option(glance_conf, "keystone_authtoken", "auth_type", "password")
