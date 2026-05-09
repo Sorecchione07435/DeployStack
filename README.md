@@ -1,3 +1,7 @@
+![Python](https://img.shields.io/badge/python-3.10+-blue)
+![OpenStack](https://img.shields.io/badge/OpenStack-Caracal-red)
+![License](https://img.shields.io/badge/license-MIT-green)
+
 # DeployStack
 
 DeployStack is a command-line utility for deploying OpenStack on Debian.  
