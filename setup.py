@@ -19,7 +19,8 @@ setup(
         "PyYAML",
         "requests",
         "tqdm",
-        "bs4"
+        "bs4",
+        "passlib"
     ],
     python_requires=">=3.10",
     entry_points={
