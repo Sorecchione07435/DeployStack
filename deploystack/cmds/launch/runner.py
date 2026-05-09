@@ -60,17 +60,18 @@ def get_image_properties(image_id: str) -> dict:
     }
 
 
-def get_default_image(preferred: str = DEFAULT_IMAGE) -> str:
+def get_default_image(preferred: str) -> str:
     out = _os("image", "list", "--status", "active", "-f", "value", "-c", "ID", "-c", "Name")
     for line in out.splitlines():
         parts = line.split(None, 1)
-        if len(parts) == 2 and preferred.lower() in parts[1].lower():
-            return parts[0]
-    first = out.splitlines()[0].split()[0] if out else None
-    if not first:
-        logger.error("No images found. Upload one first using: openstack image create")
-        sys.exit(1)
-    return first
+        if len(parts) != 2:
+            continue
+        image_id, image_name = parts
+        if preferred.lower() == image_name.lower():
+            return image_id
+
+    logger.error(f"No active image found with name '{preferred}'")
+    sys.exit(1)
 
 
 def get_default_flavor(preferred: str = DEFAULT_FLAVOR) -> str:
