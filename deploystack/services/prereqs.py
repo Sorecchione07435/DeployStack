@@ -32,12 +32,18 @@ def set_openstack_release(config):
 
     elif distro_id == "debian":
 
+        dpkg_conf = '/etc/apt/apt.conf.d/90force-conf'
         repo_line = f"deb http://deb.debian.org/debian {distro_codename}-backports main"
         repo_file = f"/etc/apt/sources.list.d/debian-backports.list"
 
         if not os.path.exists(repo_file):
             with open(repo_file, "w") as f:
                 f.write(repo_line + "\n")
+
+        subprocess.run('debconf-set-selections <<< "debconf debconf/frontend select Noninteractive"', shell=True, check=True)
+
+        with open(dpkg_conf, 'w') as f:
+            f.write('DPkg::Options {"--force-confdef"; "--force-confold"; };')
     else:
         print(f"{colors.YELLOW}Warning: Unknown distribution '{distro_id}'. Skipping repository setup.{colors.RESET}")
 
