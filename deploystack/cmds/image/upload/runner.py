@@ -65,10 +65,7 @@ def is_image_already_exists(image_name) -> bool:
         result = subprocess.run(list_images_cmd, capture_output=True, text=True, check=True)
         existing_images = [line.strip() for line in result.stdout.splitlines()]
 
-        if image_name not in existing_images:
-            return True
-        else:
-            return False
+        return image_name in existing_images
 
     except subprocess.CalledProcessError as e:
         print(f"\n{colors.RED}Error while trying to listing images: {e}{colors.RESET}")
@@ -165,7 +162,7 @@ def upload_image(
     if is_image_already_exists(glance_image_name):
         print(f"{colors.RED}Error: Glance image '{glance_image_name}' already exists.{colors.RESET}")
         sys.exit(1)
-        
+
     download_file(image_url, temp_file_path)
 
     if upload_glance_image(temp_file_path, glance_image_name, os, visibility, timeout):
