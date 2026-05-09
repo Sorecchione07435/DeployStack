@@ -21,9 +21,12 @@ def conf_placement(config):
 
     print()
 
+    db_password = get(config, "passwords.DATABASE_PASSWORD")
     service_password = get(config, "passwords.SERVICE_PASSWORD")
 
     ip_address = get(config, "network.HOST_IP")
+
+    set_conf_option(placement_conf, "placement_database", "connection", f"mysql+pymysql://placement:{db_password}@{ip_address}/placement")
       
     set_conf_option(placement_conf, "keystone_authtoken", "www_authenticate_uri", f"http://{ip_address}:5000/")
     set_conf_option(placement_conf, "keystone_authtoken", "auth_url", f"http://{ip_address}:5000/")
@@ -34,6 +37,8 @@ def conf_placement(config):
     set_conf_option(placement_conf, "keystone_authtoken", "project_name", "service")
     set_conf_option(placement_conf, "keystone_authtoken", "username", "placement")
     set_conf_option(placement_conf, "keystone_authtoken", "password", service_password)
+
+    set_conf_option(placement_conf, "api", "auth_strategy", "keystone")
 
     if not run_command([
     "sudo", "-u", "placement",
