@@ -159,6 +159,8 @@ def conf_neutron_ovs(config):
     public_bridge = get(config, "neutron.ovs.PUBLIC_BRIDGE")
     internal_bridge = get(config, "neutron.ovs.INTERNAL_BRIDGE")
 
+    tenant_network_type = get(config, "neutron.tenant_network.TYPE")
+
     provider_networks = get(config, "neutron.provider_networks", [])
 
     flat_networks  = [n["name"] for n in provider_networks if n["type"] == "flat"]
@@ -171,7 +173,7 @@ def conf_neutron_ovs(config):
     vlan_networks_str = ",".join(vlan_networks)
 
     set_conf_option(conf_ml2, "ml2", "type_drivers", "flat,vlan,local")
-    set_conf_option(conf_ml2, "ml2", "tenant_network_types", "flat,vlan,local")
+    set_conf_option(conf_ml2, "ml2", "tenant_network_types", tenant_network_type)
     set_conf_option(conf_ml2, "ml2", "extension_drivers", "port_security")
 
     if flat_networks_str:
@@ -296,7 +298,6 @@ def create_ovs_networks(config):
         "Creating internal router...",
         )
          
-
     run_command(
         ["openstack", "router", "set", "internal_router", "--external-gateway", "public"],
         "Setting external gateway for internal router...",

@@ -1,42 +1,6 @@
-import ipaddress
-import psutil
-
-from .parser import get
+from .utils import get_provider_networks, interface_exists, validate_ip, validate_cidr
 from ..core import colors
-
-def get_provider_networks(config):
-
-    networks_list = get(config, "neutron.provider_networks", [])
-    result = []
-
-    for net in networks_list:
-        net_info = {
-            "bridge": net.get("bridge"),
-            "name": net.get("name"),
-            "type": net.get("type")
-        }
-        result.append(net_info)
-
-    return result
-
-def interface_exists(if_name: str) -> bool:
-    return if_name in psutil.net_if_addrs()
-
-def validate_ip(value: str, field_name: str) -> bool:
-    try:
-        ipaddress.ip_address(value)
-        return True
-    except ValueError:
-        print(f"{colors.RED}Error: '{field_name}' contains an invalid IP: {value}{colors.RESET}")
-        return False
-
-def validate_cidr(value: str, field_name: str) -> bool:
-    try:
-        ipaddress.ip_network(value, strict=False)
-        return True
-    except ValueError:
-        print(f"{colors.RED}Error: '{field_name}' contains an invalid network CIDR: {value}{colors.RESET}")
-        return False
+from .parser import get
 
 # --- Passwords ---
 def validate_passwords(config) -> bool:
@@ -50,7 +14,6 @@ def validate_passwords(config) -> bool:
     return ok
 
 # --- Public network ---
-
 def validate_host_network(config) -> bool:
 
     ok = True
@@ -222,17 +185,49 @@ def validate_cinder(config) -> bool:
 # --- Compute ---
 def validate_compute(config) -> bool:
     ok = True
+    warnings = []
+
     compute_fields = [
         "compute.NOVA_COMPUTE_VIRT_TYPE",
         "compute.CPU_ALLOCATION_RATIO",
         "compute.RAM_ALLOCATION_RATIO",
         "compute.DISK_ALLOCATION_RATIO",
     ]
+
+    ratios = {
+        "compute.CPU_ALLOCATION_RATIO": 1.0,
+        "compute.RAM_ALLOCATION_RATIO": 1.0,
+        "compute.DISK_ALLOCATION_RATIO": 1.0,
+    }
+
+    max_warn_ratios = {
+        "compute.CPU_ALLOCATION_RATIO": 16.0,
+        "compute.RAM_ALLOCATION_RATIO": 8.0,
+        "compute.DISK_ALLOCATION_RATIO": 2.0,
+    }
+
     for field in compute_fields:
         value = get(config, field)
         if value is None:
             print(f"{colors.RED}Error: '{field}' is not set{colors.RESET}")
             ok = False
+
+    for key, min_value in ratios.items():
+        value = get(config, key)
+        try:
+            float_val = float(value)
+            if float_val < min_value:
+                print(f"{colors.RED}Error: {key} must be >= {min_value}, found: {float_val}{colors.RESET}")
+                ok = False
+            elif float_val > max_warn_ratios[key]:
+                warnings.append(f"{key} is unusually high ({float_val})")
+        except (TypeError, ValueError):
+            print(f"{colors.RED}Error: {key} must be a decimal number, found: {value}{colors.RESET}")
+            ok = False
+
+    for w in warnings:
+        print(f"{colors.YELLOW}Warning: {w}{colors.RESET}")
+
     return ok
 
 # --- Optional services ---

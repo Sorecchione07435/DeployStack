@@ -45,7 +45,7 @@ neutron:
 
   # Tenant network configuration (common to OVS and OVN)
   tenant_network:
-    TYPE: "geneve"      # OVN: geneve | OVS: vxlan, gre, vlan
+    TYPE: "geneve"      # OVN: geneve | OVS: flat, vlan
     VNI_RANGE: "1:65536"
 
   # Configure provider networks
@@ -85,13 +85,6 @@ optional_services:
   #INSTALL_HEAT: no
   #INSTALL_OCTAVIA: no   # Load Balancer
   #INSTALL_BARBICAN: no  # Key Manager
-
-# TLS for OVN (optional, recommended for production)
-# ovn_tls:
-# ENABLED: false
-# CA_CERT: "/etc/ovn/ca.crt"
-# SERVER_CERT: "/etc/ovn/server.crt"
-# SERVER_KEY: "/etc/ovn/server.key"
 
 openstack:
   OPENSTACK_RELEASE: "caracal"

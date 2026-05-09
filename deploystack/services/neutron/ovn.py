@@ -198,65 +198,47 @@ def conf_ovn_neutron(config):
     ovn_sb_port = get(config, "neutron.ovn.OVN_SB_PORT")
     ovn_nb_port = get(config, "neutron.ovn.OVN_NB_PORT")
 
-    tenant_network_type = get(config, "neutron.tenant_network.TYPE")
-    tenant_network_vni_range = get(config, "neutron.tenant_network.VNI_RANGE")
+    tenant_network_type = get(config, "neutron.tenant_network.TYPE", "geneve")
+    tenant_network_vni_range = get(config, "neutron.tenant_network.VNI_RANGE", "1:1000")
+
+    ovn_l3_scheduler = get(config, "neutron.ovn.OVN_L3_SCHEDULER", "leastloaded")
     
-    ovn_l3_scheduler = get(config, "neutron.ovn.OVN_L3_SCHEDULER")
-
-    ovn_public_bridge = get(config, "neutron.ovn.OVN_PUBLIC_BRIDGE")
-
     provider_networks = get(config, "neutron.provider_networks", [])
 
-    flat_networks  = [n["name"] for n in provider_networks if n["type"] == "flat"]
-    vlan_networks  = [n["name"] for n in provider_networks if n["type"] == "vlan"]
+    flat_networks = [n["name"] for n in provider_networks if n["type"] == "flat"]
+    vlan_networks = [n for n in provider_networks if n["type"] == "vlan"]
+
+    flat_networks_str = ",".join(flat_networks)
+    vlan_networks_str = ",".join(f'{n["name"]}:{n["vlan_range"]}' for n in vlan_networks)
 
     bridge_mappings = ",".join(f'{n["name"]}:{n["bridge"]}' for n in provider_networks)
 
     enable_distributed_floating_ip = get(config, "neutron.ovn.ENABLE_DISTRIBUTED_FLOATING_IP", "no") == "yes"
 
-    flat_networks_str = ",".join(flat_networks)
-
-    vlan_networks_str = ",".join(vlan_networks)
-
     set_conf_option(conf_ml2, "ml2", "mechanism_drivers", "ovn")
-
-    # OVN supports flat, vlan, geneve (geneve is the overlay type for tenant nets)
     set_conf_option(conf_ml2, "ml2", "type_drivers", "flat,vlan,geneve,local")
-
-    # geneve for self-service (tenant) networks; flat/vlan for provider networks
     set_conf_option(conf_ml2, "ml2", "tenant_network_types", tenant_network_type)
-
     set_conf_option(conf_ml2, "ml2", "extension_drivers", "port_security")
+    set_conf_option(conf_ml2, "securitygroup", "enable_ipset", "true")
 
-    # Geneve VNI range and header size (OVN requires at least 38)
     set_conf_option(conf_ml2, "ml2_type_geneve", "vni_ranges", tenant_network_vni_range)
     set_conf_option(conf_ml2, "ml2_type_geneve", "max_header_size", "38")
 
     if flat_networks_str:
         set_conf_option(conf_ml2, "ml2_type_flat", "flat_networks", flat_networks_str)
-
     if vlan_networks_str:
         set_conf_option(conf_ml2, "ml2_type_vlan", "network_vlan_ranges", vlan_networks_str)
 
-
-    set_conf_option(conf_ml2, "securitygroup", "enable_ipset", "true")
-
-    # OVN connection settings in ml2_conf.ini [ovn] section
     set_conf_option(conf_ml2, "ovn", "ovn_nb_connection", f"tcp:{ip_address}:{ovn_nb_port}")
     set_conf_option(conf_ml2, "ovn", "ovn_sb_connection", f"tcp:{ip_address}:{ovn_sb_port}")
     set_conf_option(conf_ml2, "ovn", "ovn_l3_mode", "true")
     set_conf_option(conf_ml2, "ovn", "ovn_l3_scheduler", ovn_l3_scheduler)
     set_conf_option(conf_ml2, "ovn", "ovn_metadata_enabled", "true")
-
-    if enable_distributed_floating_ip:
-        set_conf_option(neutron_conf, "ovn", "enable_distributed_floating_ip", "true")
-    else:
-        set_conf_option(neutron_conf, "ovn", "enable_distributed_floating_ip", "false")
-    
     set_conf_option(conf_ml2, "ovn", "ovn_bridge_mappings", bridge_mappings)
 
-    set_conf_option(conf_nova, "os_vif_ovs", "ovsdb_connection", "unix:/var/run/openvswitch/db.sock")
+    set_conf_option(neutron_conf, "ovn", "enable_distributed_floating_ip", "true" if enable_distributed_floating_ip else "false")
 
+    set_conf_option(conf_nova, "os_vif_ovs", "ovsdb_connection", "unix:/var/run/openvswitch/db.sock")
     set_conf_option(conf_nova, "neutron", "ovs_bridge", "br-int")
 
     return True
