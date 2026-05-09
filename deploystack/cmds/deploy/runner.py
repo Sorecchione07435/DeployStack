@@ -45,7 +45,7 @@ def deploy(config_file):
         return False
         
     if not has_hw_virtualization():
-        print(f"{colors.YELLOW}Warning: No hardware virtualization detected – QEMU hypervisor will be used and Nova instances will be emulated with lower performance{colors.RESET}")
+        print(f"{colors.YELLOW}Warning: No hardware virtualization detected – QEMU hypervisor will be used and Nova instances will be emulated with lower performance{colors.RESET}\n")
 
     install_cinder = get(config, "optional_services.INSTALL_CINDER", "no").lower() == "yes"
     install_horizon = get(config, "optional_services.INSTALL_HORIZON", "no").lower() == "yes"
