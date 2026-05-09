@@ -16,7 +16,7 @@ def set_openstack_release(config):
     with open(repo_file, "w") as f:
         f.write(repo_line + "\n")
 
-    run_command(["apt-get", "update" "-y"], f"Updating package lists for {release}", ignore_errors=True)
+    if not apt_update() : return False
 
 def install_pkgs():
 
