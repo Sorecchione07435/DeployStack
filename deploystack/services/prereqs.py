@@ -31,30 +31,18 @@ UBUNTU_NATIVE_OPENSTACK = {
     "resolute": "gazpacho",    # 26.04
 }
 
-def _add_uca_repo(pocket: str, release: str):
-    keyring_path = "/etc/apt/keyrings/ubuntu-cloud-archive.gpg"
-    repo_file = f"/etc/apt/sources.list.d/cloud-archive-{release}.list"
-
-    if not os.path.exists(keyring_path):
-        run_command(
-            [
-                "bash", "-c",
-                f"gpg --keyserver keyserver.ubuntu.com --recv-keys EC4926EA "
-                f"&& gpg --export EC4926EA > {keyring_path}"
-            ],
-            "Adding Ubuntu Cloud Archive GPG key...",
-            ignore_errors=False
-        )
-
-    repo_line = (
-        f"deb [signed-by={keyring_path}] "
-        f"http://ubuntu-cloud.archive.canonical.com/ubuntu {pocket} main"
+def _add_uca_repo(release: str):
+    
+    result = run_command(
+        ["add-apt-repository", "-y", f"cloud-archive:{release}"],
+        f"Adding Ubuntu Cloud Archive repository for {release}..."
     )
-    with open(repo_file, "w") as f:
-        f.write(repo_line + "\n")
-
-    print(f"{colors.GREEN}Added UCA repo: {pocket}{colors.RESET}")
-
+    
+    if not result:
+        print(f"{colors.RED}Failed to add Cloud Archive repository for {release}{colors.RESET}")
+        return False
+    
+    return True
 
 def _setup_debian_repo(distro_codename: str, release: str):
     dpkg_conf = "/etc/apt/apt.conf.d/90force-conf"
@@ -75,6 +63,31 @@ def _setup_debian_repo(distro_codename: str, release: str):
     print(f"{colors.YELLOW}Debian: OpenStack packages from backports. "
           f"Version '{release}' may not be guaranteed.{colors.RESET}")
 
+
+# (ubuntu_codename, openstack_release) -> True se disponibile via UCA
+UBUNTU_CLOUD_ARCHIVE = {
+    ("focal",   "wallaby"),
+    ("focal",   "xena"),
+    ("focal",   "yoga"),
+    ("jammy",   "zed"),
+    ("jammy",   "antelope"),
+    ("jammy",   "bobcat"),
+    ("jammy",   "caracal"),
+    ("noble",   "dalmatian"),
+    ("noble",   "epoxy"),
+}
+
+UBUNTU_NATIVE_OPENSTACK = {
+    "focal":    "ussuri",
+    "jammy":    "yoga",
+    "lunar":    "antelope",
+    "mantic":   "bobcat",
+    "noble":    "caracal",
+    "oracular": "dalmatian",
+    "plucky":   "epoxy",
+    "questing": "epoxy",
+    "resolute": "gazpacho",
+}
 
 def set_openstack_release(config):
     release = get(config, "openstack.OPENSTACK_RELEASE", "caracal").lower()
@@ -98,22 +111,17 @@ def set_openstack_release(config):
                   f"on Ubuntu {distro_codename}, skipping Cloud Archive.{colors.RESET}")
 
         elif (distro_codename, release) in UBUNTU_CLOUD_ARCHIVE:
-            pocket = UBUNTU_CLOUD_ARCHIVE[(distro_codename, release)]
-            _add_uca_repo(pocket, release)
+            if not _add_uca_repo(release):
+                return False
 
         else:
             print(f"{colors.RED}OpenStack '{release}' is not supported "
                   f"on Ubuntu '{distro_codename}'.{colors.RESET}")
-            print(f"{colors.YELLOW}Supported combinations:{colors.RESET}")
-            for (codename, rel), pocket in UBUNTU_CLOUD_ARCHIVE.items():
-                print(f"  Ubuntu {codename} -> {rel} ({pocket})")
-            if native:
-                print(f"  Ubuntu {distro_codename} -> {native} (native, no UCA needed)")
+            _print_supported_combinations(distro_codename, native)
             return False
 
     elif distro_id == "debian":
         _setup_debian_repo(distro_codename, release)
-
     else:
         print(f"{colors.YELLOW}Warning: Unknown distribution '{distro_id}'. "
               f"Skipping repository setup.{colors.RESET}")
@@ -123,6 +131,13 @@ def set_openstack_release(config):
 
     return True
 
+def _print_supported_combinations(current_codename: str, native: str):
+    print(f"{colors.YELLOW}Supported combinations:{colors.RESET}")
+    for (codename, rel) in sorted(UBUNTU_CLOUD_ARCHIVE):
+        marker = " ← you are here" if codename == current_codename else ""
+        print(f"  Ubuntu {codename} -> {rel} (via Cloud Archive){marker}")
+    if native:
+        print(f"  Ubuntu {current_codename} -> {native} (native, no UCA needed)")
 
 def install_pkgs():
 
