@@ -346,10 +346,15 @@ def launch(
     image_name   = (props.get("name") or "").lower()
     os_admin_user = (props.get("os_admin_user") or "")
 
+    prohibited_pw_chars = [' ', '$', '`', '\\']
+
     password_enabled = True
 
     if " " in password:
         print(f"{colors.RED}ERROR: Cloud-init password invalid: contains spaces{colors.RESET}")
+        sys.exit(1)
+    elif prohibited_pw_chars in password:
+        print(f"{colors.RED}ERROR: Cloud-init password invalid: illegal characters{colors.RESET}")
         sys.exit(1)
 
     if not keypair:
