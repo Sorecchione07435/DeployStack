@@ -214,7 +214,10 @@ def finalize(config):
     if service_exists("nova-api.service"):
         if not run_command(["systemctl", "restart", "nova-api"], "Restarting Nova API...", False, None, 3, 5): return False
   
-    if not run_command(["systemctl", "restart", "neutron-server", "neutron-openvswitch-agent", "neutron-dhcp-agent", "neutron-metadata-agent", "neutron-l3-agent", "nova-compute"], "Restarting Neutron OVS services...", False, None, 3, 5): return False
+    if service_exists("neutron-server.service"):
+        if not run_command(["systemctl", "restart", "neutron-server", "neutron-openvswitch-agent", "neutron-dhcp-agent", "neutron-metadata-agent", "neutron-l3-agent", "nova-compute"], "Restarting Neutron OVS services...", False, None, 3, 5): return False
+    else:
+        if not run_command(["systemctl", "restart", "neutron-periodic-workers", "apache2", "neutron-openvswitch-agent", "neutron-dhcp-agent", "neutron-metadata-agent", "neutron-l3-agent", "nova-compute"], "Restarting Neutron OVS services...", False, None, 3, 5): return False
 
     if not nc_wait(ip_address, 9696) : return False
 

@@ -266,14 +266,24 @@ def finalize(config):
     if service_exists("nova-api.service"):
         if not run_command(["systemctl", "restart", "nova-api"], "Restarting Nova API...", False, None, 3, 5): return False
 
-    if not run_command(
-        ["systemctl", "restart",
-         "neutron-server",
-         "neutron-metadata-agent",
-         "nova-compute"],
-        "Restarting Neutron and Nova services...", False, None, 3, 5
-    ):
-        return False
+    if service_exists("neutron-server.service"):
+        if not run_command(
+            ["systemctl", "restart",
+            "neutron-server",
+            "neutron-metadata-agent",
+            "nova-compute"],
+            "Restarting Neutron and Nova services...", False, None, 3, 5
+        ):
+            return False
+    else:
+        if not run_command(
+            ["systemctl", "restart",
+            "neutron-periodic-workers", "apache2",
+            "neutron-metadata-agent",
+            "nova-compute"],
+            "Restarting Neutron and Nova services...", False, None, 3, 5
+        ):
+            return False
 
     for svc in ["neutron-l3-agent", "neutron-dhcp-agent", "neutron-openvswitch-agent"]:
         run_command(["systemctl", "disable", "--now", svc],

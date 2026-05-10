@@ -111,8 +111,11 @@ def finalize():
 
     if service_exists("nova-api.service"):
         if not run_command(["systemctl", "restart", "nova-api"], "Restarting Nova API service...", False, None, 3, 5): return False
-        
-    if not run_command(["systemctl", "restart", "neutron-server", "nova-compute"], "Restarting Neutron services...", False, None, 3, 5): return False
+
+    if service_exists("neutron-server.service"):
+        if not run_command(["systemctl", "restart", "neutron-server", "nova-compute"], "Restarting Neutron services...", False, None, 3, 5): return False
+    else:
+        if not run_command(["systemctl", "restart", "neutron-periodic-workers", "apache2", "nova-compute"], "Restarting Neutron services...", False, None, 3, 5): return False
 
     return True
 
