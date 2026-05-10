@@ -353,7 +353,7 @@ def launch(
     if " " in password:
         print(f"{colors.RED}ERROR: Cloud-init password invalid: contains spaces{colors.RESET}")
         sys.exit(1)
-    elif prohibited_pw_chars in password:
+    elif any(c in password for c in prohibited_pw_chars):
         print(f"{colors.RED}ERROR: Cloud-init password invalid: illegal characters{colors.RESET}")
         sys.exit(1)
 
