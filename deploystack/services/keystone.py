@@ -1,7 +1,6 @@
 # Configure the Identity service (Keystone)
 
 import os
-import configparser
 
 from ..utils.core.commands import run_command
 from ..utils.apt.apt import apt_install, apt_update
@@ -293,6 +292,3 @@ def run_setup_keystone(config):
     
     print(f"\n{colors.GREEN}Keystone configured successfully!{colors.RESET}\n")
     return True
-
-
-

@@ -11,7 +11,7 @@ from ....utils.core import colors
 
 from ...shell import _run
 
-from .dictionary import get_image_url
+from .images import get_image_url
 
 OS_ADMIN_USERS = {
     "ubuntu": "ubuntu",
