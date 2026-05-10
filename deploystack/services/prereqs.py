@@ -38,7 +38,7 @@ def set_openstack_release(config):
             with open(repo_file, "w") as f:
                 f.write(repo_line + "\n")
         else:
-            print(f"{colors.YELLOW}Ubuntu {distro_codename}: OpenStack packages available in official repos, skipping Cloud Archive.{colors.RESET}")
+            print(f"{colors.YELLOW}Ubuntu {distro_codename}: OpenStack packages available in official repos, skipping Cloud Archive.{colors.RESET}\n")
 
     elif distro_id == "debian":
 

@@ -34,6 +34,11 @@ def conf_keystone(config):
     identity_url = f"http://{ip_address}:5000/v3/"
 
     set_conf_option(keystone_conf, "database", "connection", f"mysql+pymysql://keystone:{db_password}@{ip_address}/keystone")
+
+    set_conf_option(keystone_conf, "database", "max_pool_size", "20")
+    set_conf_option(keystone_conf, "database", "max_overflow", "100")
+    set_conf_option(keystone_conf, "database", "pool_timeout", "60")
+
     set_conf_option(keystone_conf, "token", "provider", "fernet")
 
     db_migration_cmd = [
@@ -173,7 +178,7 @@ def create_services_users(config):
 
     if not full_services_create_cmds_result: return False
 
-    full_services_role_add_cmds_result = run_command(["bash", "-c", full_services_role_add_cmds], "Assigning service user roles...")
+    full_services_role_add_cmds_result = run_command(["bash", "-c", full_services_role_add_cmds], "Assigning services user roles...")
     
     if not full_services_role_add_cmds_result: return False
 
