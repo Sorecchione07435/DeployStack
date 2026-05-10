@@ -131,7 +131,7 @@ def finalize(config):
     if service_exists("nova-api.service"):
         services_to_restart.insert(0, "nova-api")
 
-    if not run_command(["systemctl", "restart" + services_to_restart], "Restarting Nova services...", False, None, 3, 5): return False
+    if not run_command(["systemctl", "restart"] + services_to_restart, "Restarting Nova services...", False, None, 3, 5): return False
     
     if not nc_wait(ip_address, 8774) : return False
 
