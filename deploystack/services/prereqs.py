@@ -64,7 +64,6 @@ def _setup_debian_repo(distro_codename: str, release: str):
           f"Version '{release}' may not be guaranteed.{colors.RESET}")
 
 
-# (ubuntu_codename, openstack_release) -> True se disponibile via UCA
 UBUNTU_CLOUD_ARCHIVE = {
     ("focal",   "wallaby"),
     ("focal",   "xena"),
