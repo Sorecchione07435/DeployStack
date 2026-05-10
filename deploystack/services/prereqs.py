@@ -22,8 +22,13 @@ UBUNTU_CLOUD_ARCHIVE = {
 UBUNTU_NATIVE_OPENSTACK = {
     "focal":    "ussuri",
     "jammy":    "yoga",
-    "noble":    "caracal",
-    "resolute": "gazpacho",
+    "lunar":    "antelope",    # 23.04
+    "mantic":   "bobcat",      # 23.10
+    "noble":    "caracal",     # 24.04
+    "oracular": "dalmatian",   # 24.10
+    "plucky":   "epoxy",       # 25.04
+    "questing": "epoxy",       # 25.10
+    "resolute": "gazpacho",    # 26.04
 }
 
 def _add_uca_repo(pocket: str, release: str):
