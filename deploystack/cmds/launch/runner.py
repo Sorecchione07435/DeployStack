@@ -348,6 +348,10 @@ def launch(
 
     password_enabled = True
 
+    if " " in password:
+        print(f"{colors.RED}ERROR: Cloud-init password invalid: contains spaces{colors.RESET}")
+        sys.exit(1)
+
     if not keypair:
         key_path = key_path or os.path.join(SSH_KEY_PATH, f"id_{name}")
         keypair = ensure_keypair(key_path, name)
@@ -366,6 +370,7 @@ def launch(
         print(f"{colors.YELLOW}Warning: Missing image metadata. Skipping password configuration for safety.{colors.RESET}\n")
 
     if password_enabled and password:
+
         server_id = create_server_with_password(
             name, image_id, flavor_id, network_id,
             keypair, os_type, os_admin_user, password, public_key
