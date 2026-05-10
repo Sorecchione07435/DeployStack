@@ -67,9 +67,7 @@ def finalize(config):
 
     ip_address = get(config, "network.HOST_IP")
 
-    restart_cmd = ["systemctl", "restart", "glance-api"]
-
-    if not run_command(restart_cmd, "Restarting Glance service...") : return False
+    if not run_command(["systemctl", "restart", "glance-api"], "Restarting Glance service...") : return False
 
     if not nc_wait(ip_address, 9292) : return False
 
