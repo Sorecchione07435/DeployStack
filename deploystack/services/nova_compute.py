@@ -3,6 +3,7 @@
 import os
 
 from ..utils.core.commands import run_command, run_command_sync
+from ..utils.core.system_utils import has_hw_virtualization, service_exists
 from ..utils.apt.apt import apt_install
 from ..utils.config.parser import get
 from ..utils.config.setter import set_conf_option
@@ -29,7 +30,10 @@ def conf_nova_compute(config):
     set_conf_option(nova_conf, "DEFAULT", "ram_allocation_ratio", str(ram_allocation_ratio))
     set_conf_option(nova_conf, "DEFAULT", "disk_allocation_ratio", str(disk_allocation_ratio))
 
-    set_conf_option(nova_compute_conf, "libvirt", "virt_type", virt_type)
+    if not has_hw_virtualization():
+        set_conf_option(nova_compute_conf, "libvirt", "virt_type", "qemu")
+    else:
+        set_conf_option(nova_compute_conf, "libvirt", "virt_type", virt_type)
 
     set_conf_option(nova_conf, "scheduler", "discover_hosts_in_cells_interval", "300")
 
@@ -37,7 +41,16 @@ def finalize():
 
     print()
 
-    if not run_command(["systemctl", "restart", "nova-api", "nova-scheduler", "nova-compute", "apache2"], "Restarting Nova Compute services..."): return False
+    services_to_restart = [
+        "nova-scheduler", 
+        "nova-compute", 
+        "apache2"
+    ]
+
+    if service_exists("nova-api.service"):
+        services_to_restart.insert(0, "nova-api")
+
+    if not run_command(["systemctl", "restart" + services_to_restart], "Restarting Nova Compute services..."): return False
     
     print()
 

@@ -26,6 +26,10 @@ def nc_wait(addr: str, port: int, timeout: int = 30) -> bool:
             return False
         sleep(1)
 
+def service_exists(service_name):
+    result = subprocess.run(["systemctl", "list-unit-files", service_name], capture_output=True, text=True)
+    return service_name in result.stdout
+
 def check_ifupdown():
     result = subprocess.run(
         ["dpkg", "-s", "ifupdown"],

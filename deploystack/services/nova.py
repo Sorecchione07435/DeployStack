@@ -4,6 +4,7 @@ import os
 import stat
 
 from ..utils.core.commands import run_command, run_command_sync
+from ..utils.core.system_utils import service_exists
 from ..utils.apt.apt import apt_install
 from ..utils.config.parser import get
 from ..utils.config.setter import set_conf_option
@@ -125,7 +126,12 @@ def finalize(config):
      
     print()
 
-    if not run_command(["systemctl", "restart", "nova-api", "nova-scheduler", "nova-conductor", "nova-novncproxy"], "Restarting Nova services..."): return False
+    services_to_restart = ["nova-scheduler", "nova-conductor", "nova-novncproxy"]
+
+    if service_exists("nova-api.service"):
+        services_to_restart.insert(0, "nova-api")
+
+    if not run_command(["systemctl", "restart", + services_to_restart], "Restarting Nova services...", False, None, 3, 5): return False
     
     if not nc_wait(ip_address, 8774) : return False
 

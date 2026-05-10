@@ -6,6 +6,7 @@ from ...utils.core.commands import run_command
 from ...utils.apt.apt import apt_install, apt_update
 from ...utils.config.parser import get
 from ...utils.config.setter import set_conf_option
+from ...utils.core.system_utils import service_exists
 from ...utils.core import colors
 
 neutron_conf = "/etc/neutron/neutron.conf"
@@ -108,8 +109,9 @@ def finalize():
 
     print()
 
-    if not run_command(["systemctl", "restart", "nova-api"], "Restarting Nova API service...", False, None, 3, 5): return False
-    
+    if service_exists("nova-api.service"):
+        if not run_command(["systemctl", "restart", "nova-api"], "Restarting Nova API service...", False, None, 3, 5): return False
+        
     if not run_command(["systemctl", "restart", "neutron-server", "nova-compute"], "Restarting Neutron services...", False, None, 3, 5): return False
 
     return True

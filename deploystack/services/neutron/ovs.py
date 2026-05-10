@@ -10,6 +10,7 @@ from ...utils.config.parser import parse_config, get, resolve_vars
 from ...utils.config.setter import set_conf_option
 from ...utils.core.system_utils import nc_wait
 from ...utils.core import colors
+from ...utils.core.system_utils import service_exists
 from ...templates import OVS_BRIDGES_INTERFACES
 
 neutron_conf="/etc/neutron/neutron.conf"
@@ -210,8 +211,9 @@ def finalize(config):
 
     ip_address = get(config, "network.HOST_IP")
 
-    if not run_command(["systemctl", "restart", "nova-api"], "Restarting Nova API service...", False, None, 3, 5): return False
-    
+    if service_exists("nova-api.service"):
+        if not run_command(["systemctl", "restart", "nova-api"], "Restarting Nova API...", False, None, 3, 5): return False
+  
     if not run_command(["systemctl", "restart", "neutron-server", "neutron-openvswitch-agent", "neutron-dhcp-agent", "neutron-metadata-agent", "neutron-l3-agent", "nova-compute"], "Restarting Neutron OVS services...", False, None, 3, 5): return False
 
     if not nc_wait(ip_address, 9696) : return False

@@ -10,6 +10,7 @@ from ...utils.config.parser import get
 from ...utils.config.setter import set_conf_option
 from ...utils.core.system_utils import nc_wait
 from ...utils.core import colors
+from ...utils.core.system_utils import service_exists
 from ...templates import OVN_BRIDGES_INTERFACES
 
 neutron_conf = "/etc/neutron/neutron.conf"
@@ -261,10 +262,9 @@ def finalize(config):
     if not run_command(["systemctl", "enable", "--now", "ovn-controller"],
                        "Starting ovn-controller...", False, None, 3, 5):
         return False
-
-    if not run_command(["systemctl", "restart", "nova-api"],
-                       "Restarting Nova API...", False, None, 3, 5):
-        return False
+    
+    if service_exists("nova-api.service"):
+        if not run_command(["systemctl", "restart", "nova-api"], "Restarting Nova API...", False, None, 3, 5): return False
 
     if not run_command(
         ["systemctl", "restart",
