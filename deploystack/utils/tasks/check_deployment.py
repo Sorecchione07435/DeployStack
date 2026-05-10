@@ -4,6 +4,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 
+from ..core.system_utils import service_exists
 from ..core import colors
 
 MARKER_FILE = "/var/lib/openstack_installer/deploy_complete"
@@ -68,8 +69,18 @@ def check_service_active(svc: str) -> bool:
 def check_deployment(include_endpoints: bool = True):
     result = CheckResult()
 
+    services_list = ["apache2", "glance-api"]
+
+    if service_exists("nova-api.service"):
+        services_list.append("nova-api")
+
+    if service_exists("neutron-server.service"):
+        services_list.append("neutron-server")
+    else:
+        services_list.append("neutron-periodic-workers")
+
     checks = [
-        ("Services", ["apache2", "nova-api", "glance-api", "neutron-server"], check_service_active),
+        ("Services", services_list, check_service_active),
         ("Packages", ["apache2", "nova-common", "glance-api", "neutron-server"], is_package_installed),
         ("Config files", [
             "/etc/keystone/keystone.conf", "/etc/glance/glance-api.conf",
@@ -77,7 +88,6 @@ def check_deployment(include_endpoints: bool = True):
         ], os.path.isfile),
     ]
 
-    
     def add_check(category, items, fn):
         checks.append((category, items, fn))
 
