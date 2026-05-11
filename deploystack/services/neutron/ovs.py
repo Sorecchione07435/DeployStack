@@ -4,9 +4,9 @@ import os
 import shutil
 import json
 
-from ...utils.core.commands import run_command, run_sync_command_with_retry, run_command_sync, run_command_output
-from ...utils.apt.apt import apt_install, apt_update
-from ...utils.config.parser import parse_config, get, resolve_vars
+from ...utils.core.commands import run_command, run_command_sync, run_command_output
+from ...utils.apt.apt import apt_install
+from ...utils.config.parser import get
 from ...utils.config.setter import set_conf_option
 from ...utils.core.system_utils import nc_wait
 from ...utils.core import colors
@@ -252,68 +252,91 @@ def create_ovs_networks(config):
     os.environ["OS_AUTH_URL"] = f"http://{ip_address}:5000/v3"
     os.environ["OS_IDENTITY_API_VERSION"] = "3"
 
-    run_command_sync(["openstack", "subnet", "delete", "public_subnet"])
-    run_command_sync(["openstack", "subnet", "delete", "internal_subnet"])
+    networks_list_json = run_command_output(["openstack", "network", "list", "-f", "json"])
+    subnets_list_json = run_command_output(["openstack", "subnet", "list", "-f", "json"])
+    routers_list_json = run_command_output(["openstack", "router", "list", "-f", "json"])
 
-    run_command_sync(["openstack", "network", "delete", "public"])
-    run_command_sync(["openstack", "network", "delete", "internal"])
+    networks_list = json.loads(networks_list_json)
+    subnets_list = json.loads(subnets_list_json)
+    routers_list = json.loads(routers_list_json)
 
-    run_command(
-        ["openstack", "network", "create", "--share", "--external",
-         "--provider-physical-network", "public",
-         "--provider-network-type", "flat", "public"],
-        "Creating public network...",
-        )
+    public_network_exists = any(net.get("Name") == "public" for net in networks_list)
+    if not public_network_exists:
+        if not run_command(
+            ["openstack", "network", "create",
+            "--share", "--external",
+            "--provider-physical-network", "public",
+            "--provider-network-type", "flat",
+            "public"],
+            "Creating public network..."
+        ) : return False
+    else:
+        print(f"{colors.YELLOW}Public network already exists, skipping creation.{colors.RESET}")
 
-    run_command(
-        ["openstack", "subnet", "create", "--network", "public",
-         "--allocation-pool", f"start={public_subnet_range_start},end={public_subnet_range_end}",
-         "--gateway", public_subnet_gateway,
-         "--subnet-range", public_subnet_cidr,
-         "public_subnet"] + dns_args,
-        "Creating public subnet...",
-        )
+    public_subnet_exists = any(sub.get("Name") == "public_subnet" for sub in subnets_list)
+    if not public_subnet_exists:
+        if not run_command(
+            ["openstack", "subnet", "create",
+            "--network", "public",
+            "--allocation-pool", f"start={public_subnet_range_start},end={public_subnet_range_end}",
+            "--gateway", public_subnet_gateway,
+            "--subnet-range", public_subnet_cidr,
+            "public_subnet"] + dns_args,
+            "Creating public subnet..."
+        ) : return False
+    else:
+        print(f"{colors.YELLOW}Public subnet already exists, skipping creation.{colors.RESET}")
     
     print()
 
-    run_command(
-        ["openstack", "network", "create", "--share",
-            "--provider-physical-network", "internal",
-            "--provider-network-type", "flat", "internal"],
-        "Creating internal network...",
-        )
+    internal_network_exists = any(net.get("Name") == "internal" for net in networks_list)
 
-    run_command(
-        ["openstack", "subnet", "create", "--network", "internal",
-         "--subnet-range", "10.0.0.0/24",
-         "--gateway", "10.0.0.1",
-         "--allocation-pool", "start=10.0.0.10,end=10.0.0.200",
-         "--dns-nameserver", "8.8.8.8",
-         "internal_subnet"],
-        "Creating internal subnet...",
-        )
-    
+    if not internal_network_exists:
+        if not run_command(
+            ["openstack", "network", "create", "--share",
+                "--provider-physical-network", "internal",
+                "--provider-network-type", "flat", "internal"],
+            "Creating internal network...",
+            ) : return False
+    else:
+        print(f"{colors.YELLOW}Internal network already exists, skipping creation.{colors.RESET}")
+
+    internal_subnet_exists = any(sub.get("Name") == "internal_subnet" for sub in subnets_list)
+    if not internal_subnet_exists:
+        if not run_command(
+            ["openstack", "subnet", "create", "--network", "internal",
+            "--subnet-range", "10.0.0.0/24",
+            "--gateway", "10.0.0.1",
+            "--allocation-pool", "start=10.0.0.10,end=10.0.0.200",
+            "--dns-nameserver", "8.8.8.8",
+            "internal_subnet"],
+            "Creating internal subnet...",
+            ) : return False
+    else:
+        print(f"{colors.YELLOW}Internal subnet already exists, skipping creation.{colors.RESET}")
+        
     print()
 
-    run_command_sync(["openstack", "router", "remove", "subnet", "internal_router", "internal_subnet"])
-    run_command_sync(["openstack", "router", "delete", "internal_router"])
+    router_exists = any(r.get("Name") == "internal_router" for r in routers_list)
+    if not router_exists:
+        if not run_command(
+            ["openstack", "router", "create", "internal_router"],
+            "Creating internal router...",
+            ) : return False
+            
+        if not run_command(
+            ["openstack", "router", "set", "internal_router", "--external-gateway", "public"],
+            "Setting external gateway for internal router...",
+            ) : return False
+        
+        print()
 
-    run_command(
-        ["openstack", "router", "create", "internal_router"],
-        "Creating internal router...",
-        )
-         
-    run_command(
-        ["openstack", "router", "set", "internal_router", "--external-gateway", "public"],
-        "Setting external gateway for internal router...",
-        )
-    
-    print()
-
-    run_command(
-        ["openstack", "router", "add", "subnet", "internal_router", "internal_subnet"],
-        "Adding internal subnet to router...",
-        )
+        if not run_command(
+            ["openstack", "router", "add", "subnet", "internal_router", "internal_subnet"],
+            "Adding internal subnet to router...",
+        ) : return False
+    else:
+        print(f"{colors.YELLOW}Internal Router already exists, skipping creation.{colors.RESET}")
     
     print()
 
@@ -336,13 +359,13 @@ def create_ovs_networks(config):
     )
 
     if not ssh_rule_exists:
-        run_command(
+        if not run_command(
             ["openstack", "security", "group", "rule", "create",
             "--proto", "tcp",
             "--dst-port", "22",
             "--remote-ip", public_subnet_cidr,
             sg_id],
-            "Allowing SSH access...")
+            "Allowing SSH access...") : return False
     else:
         print(f"{colors.YELLOW}The SSH rule already exists, skipping this step{colors.RESET}")
 

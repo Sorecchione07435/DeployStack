@@ -5,10 +5,12 @@ import time
 import uuid
 import shutil
 import base64
+import json
 from passlib.hash import sha512_crypt
 
 from ...utils.core import colors
 from ...templates import CLOUD_CONFIG_LINUX, CLOUD_CONFIG_LINUX_NO_ROOT
+from ...utils.core.commands import run_command, run_command_output
 
 from ..shell import _run, _os, _os_value, logger
 
@@ -330,6 +332,8 @@ def launch(
     password: str       = ""
 ) -> None:
 
+    prohibited_pw_chars = [' ', '$', '`', '\\']
+
     os.makedirs(SSH_KEY_PATH, exist_ok=True)
     key_path = os.path.join(SSH_KEY_PATH, f"id_{name}")
 
@@ -345,8 +349,6 @@ def launch(
     os_distro    = (props.get("os_distro") or "").lower()
     image_name   = (props.get("name") or "").lower()
     os_admin_user = (props.get("os_admin_user") or "")
-
-    prohibited_pw_chars = [' ', '$', '`', '\\']
 
     password_enabled = True
 

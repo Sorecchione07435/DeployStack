@@ -1,8 +1,9 @@
 # Configure the Image service (Glance)
 
 import os
+import json
 
-from ..utils.core.commands import run_command, run_command_sync
+from ..utils.core.commands import run_command, run_command_output
 from ..utils.apt.apt import apt_install
 from ..utils.config.parser import get
 from ..utils.config.setter import set_conf_option
@@ -75,8 +76,6 @@ def finalize(config):
 
 def upload_cirros_image(config):
 
-    print()
-
     ip_address = get(config, "network.HOST_IP")
 
     admin_password = get(config, "passwords.ADMIN_PASSWORD")
@@ -92,24 +91,29 @@ def upload_cirros_image(config):
 
     image_name = "cirros"
     image_file_path = "/tmp/cirros-0.4.0-x86_64-disk.img"
-    
-    if not run_command([ "wget", "-O", image_file_path, cirros_image_url], "Downloading a Cirros image...", False, None, 5, 5) : return False
-    
-    run_command_sync(["openstack", "image", "delete", "cirros"])
 
-    if not run_command([
-        "openstack", "image", "create",
-        image_name,
-        "--file", image_file_path,
-        "--disk-format", "qcow2",
-        "--container-format", "bare",
-        "--public"
-        ] , f"Adding cirros image...") : return False
-    
-    os.remove(image_file_path)
+    images_list_json = run_command_output(["openstack", "image", "list", "-f", "json"])
+    images_list = json.loads(images_list_json)
+
+    cirros_image_exists = any(image.get("Name") == image_name for image in images_list)
+
+    if not cirros_image_exists:
+        print()
+        
+        if not run_command([ "wget", "-O", image_file_path, cirros_image_url], "Downloading a Cirros image...", False, None, 5, 5) : return False
+        
+        if not run_command([
+            "openstack", "image", "create",
+            image_name,
+            "--file", image_file_path,
+            "--disk-format", "qcow2",
+            "--container-format", "bare",
+            "--public"
+            ] , f"Adding cirros image...") : return False
+        
+        os.remove(image_file_path)
 
     return True
-    
     
 def run_setup_glance(config):
      
