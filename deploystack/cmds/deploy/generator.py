@@ -164,7 +164,7 @@ def config_openstack(
 
     # OpenStack
     config_dict.setdefault("openstack", {})
-    config_dict["openstack"].setdefault("OPENSTACK_RELEASE", os_release.lower())
+    config_dict["openstack"]["OPENSTACK_RELEASE"] = os_release.lower()
     config_dict["openstack"].setdefault("REGION_NAME", "RegionOne")
 
     with open(config_file_path, "w") as f:
