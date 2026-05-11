@@ -64,8 +64,6 @@ def conf_ovn_bridges(config):
     run_command(["ovs-vsctl", "--if-exists", "del-br", internal_bridge],
                 f"Deleting bridge {internal_bridge}", ignore_errors=True)
 
-    print()
-
     if isinstance(subnet_address_dns_servers, list):
         subnet_address_dns_servers = " ".join(subnet_address_dns_servers)
 
@@ -103,6 +101,9 @@ def conf_ovn_bridges(config):
     run_command(["ovs-vsctl", "--may-exist", "add-br", public_bridge], f"Adding bridge {public_bridge}")
     run_command(["ovs-vsctl", "--may-exist", "add-port", public_bridge, public_iface],
                 f"Adding port {public_iface} to {public_bridge}")
+    
+    print()
+
     run_command(["ip", "link", "set", public_iface, "up"], f"Bringing {public_iface} up")
     run_command(["ip", "link", "set", public_bridge, "up"], f"Bringing {public_bridge} up")
 
@@ -125,16 +126,14 @@ def conf_ovn_bridges(config):
 
 def conf_ovn_controller(config):
 
+    print()
+
     ip_address = get(config, "network.HOST_IP")
-    public_bridge = get(config, "neutron.ovn.OVN_PUBLIC_BRIDGE")
 
     ovn_sb_port = get(config, "neutron.ovn.OVN_SB_PORT")
     ovn_encap_type = get(config, "neutron.ovn.OVN_ENCAP_TYPE")
     
     provider_networks = get(config, "neutron.provider_networks", [])
-
-    flat_networks  = [n["name"] for n in provider_networks if n["type"] == "flat"]
-    vlan_networks  = [n["name"] for n in provider_networks if n["type"] == "vlan"]
 
     bridge_mappings = ",".join(f'{n["name"]}:{n["bridge"]}' for n in provider_networks)
 
@@ -167,6 +166,9 @@ def conf_ovn_controller(config):
 
 
 def conf_ovn_db_connections(config):
+
+    print()
+
     ip_address = get(config, "network.HOST_IP")
 
     ovn_sb_port = get(config, "neutron.ovn.OVN_SB_PORT")
