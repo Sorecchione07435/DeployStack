@@ -90,6 +90,11 @@ def validate_public_network(config) -> bool:
 def validate_neutron(config) -> bool:
     ok = True
     driver = get(config, "neutron.DRIVER")
+    
+    ovs_create_bridges = get(config, "neutron.ovs.CREATE_BRIDGES")
+
+    public_bridge_interface_ovs = get(config, "neutron.ovs.PUBLIC_BRIDGE_INTERFACE")
+
     if driver not in ("ovs", "ovn"):
         print(f"{colors.RED}Error: neutron.DRIVER must be 'ovs' or 'ovn' (got '{driver}'){colors.RESET}")
         ok = False
@@ -105,6 +110,15 @@ def validate_neutron(config) -> bool:
             if not value:
                 print(f"{colors.RED}Error: '{field}' is not set{colors.RESET}")
                 ok = False
+        
+        if ovs_create_bridges not in ("yes", "no"):
+            print(f"{colors.RED}Error: '{ovs_create_bridges}' must be 'yes' or 'no' (got '{value}'){colors.RESET}")
+            ok = False
+
+        if not interface_exists(public_bridge_interface_ovs):
+            print(f"{colors.RED}The interface '{public_bridge_interface_ovs}' specified in neutron.ovs.PUBLIC_BRIDGE_INTERFACE does not exist.{colors.RESET}")
+            ok = False
+
 
     if driver == "ovn":
         ovn_fields = [
@@ -126,17 +140,6 @@ def validate_neutron(config) -> bool:
 
     networks = get_provider_networks(config)
 
-    ovs_create_bridges = get(config, "neutron.ovs.CREATE_BRIDGES")
-
-    public_bridge_interface_ovs = get(config, "neutron.ovs.PUBLIC_BRIDGE_INTERFACE")
-
-    if ovs_create_bridges not in ("yes", "no"):
-            print(f"{colors.RED}Error: '{ovs_create_bridges}' must be 'yes' or 'no' (got '{value}'){colors.RESET}")
-            ok = False
-
-    if not interface_exists(public_bridge_interface_ovs):
-        print(f"{colors.RED}The interface '{public_bridge_interface_ovs}' specified in neutron.ovs.PUBLIC_BRIDGE_INTERFACE does not exist.{colors.RESET}")
-        ok = False
 
     for net in networks:
         net_type = net["type"]

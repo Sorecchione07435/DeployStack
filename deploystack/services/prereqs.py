@@ -35,7 +35,7 @@ def _add_uca_repo(release: str):
     
     result = run_command(
         ["add-apt-repository", "-y", f"cloud-archive:{release}"],
-        f"Adding Ubuntu Cloud Archive repository for {release}..."
+        f"Adding Ubuntu Cloud Archive repository for {release}... "
     )
     
     if not result:
