@@ -288,10 +288,13 @@ def finalize(config):
         ):
             return False
         
-    print()
-
+    printed_line = False
     for svc in ["neutron-l3-agent", "neutron-dhcp-agent", "neutron-openvswitch-agent"]:
         if service_exists(svc):
+            if not printed_line:
+                print()
+                printed_line = True
+
             run_command(["systemctl", "disable", "--now", svc],
             f"Disabling legacy agent {svc}", ignore_errors=True)
 
