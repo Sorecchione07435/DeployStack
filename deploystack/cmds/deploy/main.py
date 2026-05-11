@@ -60,6 +60,14 @@ def init_parser(subparsers):
     )
 
     parser.add_argument(
+        "--os-release",
+        type=str,
+        default="caracal",
+        dest="os_release",
+        help="The OpenStack release to install for deployment"
+    )
+
+    parser.add_argument(
         "--generate-only",
         action="store_true",
         help="Generates a pre-compiled configuration file for the current system without starting the deployment"
@@ -77,13 +85,16 @@ def deploy(parser, args) -> None:
         driver = args.neutron_driver if args.neutron_driver in ("ovs","ovn") else "ovs"
         
         lvm_size = args.lvm_image_size_in_gb if cinder_flag == "yes" else 0
+
+        openstack_release = args.os_release
         
         config_openstack(
             install_horizon=horizon_flag,
             install_cinder=cinder_flag,
             config_file_path=config_file_path,
             lvm_image_size_in_gb=lvm_size,
-            neutron_driver=driver
+            neutron_driver=driver,
+            os_release=openstack_release
         )
 
         if args.generate_only:

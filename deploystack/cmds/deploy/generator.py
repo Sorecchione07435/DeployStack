@@ -38,7 +38,8 @@ def config_openstack(
     install_cinder: str = "yes",
     config_file_path: str = "",
     lvm_image_size_in_gb=None,
-    neutron_driver: str = "ovs"   # "ovs" | "ovn"
+    neutron_driver: str = "ovs",   # "ovs" | "ovn"
+    os_release: str = "caracal"
 ):
     # Carica template YAML
     try:
@@ -96,7 +97,7 @@ def config_openstack(
 
     # Neutron OVS / OVN
     config_dict["neutron"].setdefault("ovs", {})
-    config_dict["neutron"]["ovs"]["CREATE_BRIDGES"] = "yes" if neutron_driver == "ovs" else "no"
+    config_dict["neutron"]["ovs"]["CREATE_BRIDGES"] = "yes" if neutron_driver == "ovs" else ""
     config_dict["neutron"]["ovs"]["PUBLIC_BRIDGE_INTERFACE"] = iface if neutron_driver == "ovs" else ""
     config_dict["neutron"]["ovs"]["PUBLIC_BRIDGE"] = "br-ex" if neutron_driver == "ovs" else ""
     config_dict["neutron"]["ovs"]["INTERNAL_BRIDGE"] = "br-internal" if neutron_driver == "ovs" else ""
@@ -163,7 +164,7 @@ def config_openstack(
 
     # OpenStack
     config_dict.setdefault("openstack", {})
-    config_dict["openstack"].setdefault("OPENSTACK_RELEASE", "caracal")
+    config_dict["openstack"].setdefault("OPENSTACK_RELEASE", os_release.lower())
     config_dict["openstack"].setdefault("REGION_NAME", "RegionOne")
 
     with open(config_file_path, "w") as f:
