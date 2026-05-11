@@ -9,6 +9,12 @@ from ...utils.core import colors
 import subprocess
 import sys
 
+def iface_exists(iface: str) -> bool:
+    result = subprocess.run(["ip", "link", "show", iface],
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL)
+    return result.returncode == 0
+
 def nc_wait(addr: str, port: int, timeout: int = 30) -> bool:
 
     start_time = time()

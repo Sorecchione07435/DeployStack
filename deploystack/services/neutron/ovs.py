@@ -8,7 +8,7 @@ from ...utils.core.commands import run_command, run_command_sync, run_command_ou
 from ...utils.apt.apt import apt_install
 from ...utils.config.parser import get
 from ...utils.config.setter import set_conf_option
-from ...utils.core.system_utils import nc_wait
+from ...utils.core.system_utils import nc_wait, iface_exists
 from ...utils.core import colors
 from ...utils.core.system_utils import service_exists
 from ...templates import OVS_BRIDGES_INTERFACES
@@ -52,26 +52,21 @@ def conf_openvswitch_bridges(config):
     subnet_address_gateway = get(config, "public_network.PUBLIC_SUBNET_GATEWAY")
     subnet_address_dns_servers = get(config, "public_network.PUBLIC_SUBNET_DNS_SERVERS")
 
-    check_cmd = ["ip", "link", "show", public_iface]
-    if run_command(check_cmd, f"Checking if interface {public_iface} exists", ignore_errors=True):
-        run_command(["ip", "addr", "flush", "dev", public_iface], f"Flushing IPs on {public_iface}")
-        run_command(["ip", "link", "set", public_iface, "down"], f"Bringing {public_iface} down")
+    for iface in [public_iface, public_bridge, internal_bridge]:
+        if iface_exists(iface):
+            if iface != internal_bridge:
+                run_command(["ip", "addr", "flush", "dev", iface], f"Flushing IPs on {iface}", ignore_errors=True)
+            run_command(["ip", "link", "set", iface, "down"], f"Bringing {iface} down", ignore_errors=True)
 
-    check_cmd = ["ip", "link", "show", public_bridge]
-    if run_command(check_cmd, f"Checking if bridge {public_bridge} exists", ignore_errors=True):
-        run_command(["ip", "addr", "flush", "dev", public_bridge], f"Flushing IPs on {public_bridge}", True)
-        run_command(["ip", "link", "set", public_bridge, "down"], f"Bringing {public_bridge} down", True)
+    if iface_exists(public_bridge):
+        run_command(["ovs-vsctl", "--if-exists", "del-port", public_bridge, public_iface],
+                    f"Deleting port {public_iface} from bridge {public_bridge}", ignore_errors=True)
+        run_command(["ovs-vsctl", "--if-exists", "del-br", public_bridge],
+                    f"Deleting bridge {public_bridge}", ignore_errors=True)
 
-    # INTERNAL_BRIDGE
-    check_cmd = ["ip", "link", "show", internal_bridge]
-    if run_command(check_cmd, f"Checking if bridge {internal_bridge} exists", ignore_errors=True):
-        run_command(["ip", "link", "set", internal_bridge, "down"], f"Bringing {internal_bridge} down", True)
-    
-        run_command(
-        ["ovs-vsctl", "--if-exists", "del-port", public_bridge, public_iface],
-        f"Deleting port {public_iface} from bridge {public_bridge} if exists",
-        ignore_errors=True
-    )
+    if iface_exists(internal_bridge):
+        run_command(["ovs-vsctl", "--if-exists", "del-br", internal_bridge],
+                    f"Deleting bridge {internal_bridge}", ignore_errors=True)
         
     print()
 

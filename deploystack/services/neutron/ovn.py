@@ -8,7 +8,7 @@ from ...utils.core.commands import run_command, run_command_sync, run_command_ou
 from ...utils.apt.apt import apt_install
 from ...utils.config.parser import get
 from ...utils.config.setter import set_conf_option
-from ...utils.core.system_utils import nc_wait
+from ...utils.core.system_utils import nc_wait, iface_exists
 from ...utils.core import colors
 from ...utils.core.system_utils import service_exists
 from ...templates import OVN_BRIDGES_INTERFACES
@@ -50,12 +50,12 @@ def conf_ovn_bridges(config):
     subnet_address_gateway = get(config, "public_network.PUBLIC_SUBNET_GATEWAY")
     subnet_address_dns_servers = get(config, "public_network.PUBLIC_SUBNET_DNS_SERVERS")
 
-    # Flush existing interfaces/bridges
     for iface in [public_iface, public_bridge, internal_bridge]:
-        check_cmd = ["ip", "link", "show", iface]
-        if run_command(check_cmd, f"Checking if {iface} exists", ignore_errors=True):
-            run_command(["ip", "addr", "flush", "dev", iface], f"Flushing IPs on {iface}", ignore_errors=True)
-            run_command(["ip", "link", "set", iface, "down"], f"Bringing {iface} down", ignore_errors=True)
+        if iface_exists(iface):
+            check_cmd = ["ip", "link", "show", iface]
+            if run_command(check_cmd, f"Checking if {iface} exists", ignore_errors=True):
+                run_command(["ip", "addr", "flush", "dev", iface], f"Flushing IPs on {iface}", ignore_errors=True)
+                run_command(["ip", "link", "set", iface, "down"], f"Bringing {iface} down", ignore_errors=True)
 
     run_command(["ovs-vsctl", "--if-exists", "del-port", public_bridge, public_iface],
                 f"Removing port {public_iface} from {public_bridge}", ignore_errors=True)
@@ -287,14 +287,19 @@ def finalize(config):
             "Restarting Neutron and Nova services...", False, None, 3, 5
         ):
             return False
+        
+    print()
 
     for svc in ["neutron-l3-agent", "neutron-dhcp-agent", "neutron-openvswitch-agent"]:
-        run_command(["systemctl", "disable", "--now", svc],
-                    f"Disabling legacy agent {svc}", ignore_errors=True)
-        
+        if service_exists(svc):
+            run_command(["systemctl", "disable", "--now", svc],
+            f"Disabling legacy agent {svc}", ignore_errors=True)
+
     udev_rule = 'SUBSYSTEM=="unix", ACTION=="add", DEVPATH=="/var/run/openvswitch/db.sock", MODE="0666"\n'
+
     with open("/etc/udev/rules.d/99-openvswitch.rules", "w") as f:
         f.write(udev_rule)
+
     run_command_sync(["udevadm", "control", "--reload-rules"])
 
     if not nc_wait(ip_address, 9696) : return False
