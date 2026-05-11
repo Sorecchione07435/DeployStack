@@ -115,12 +115,11 @@ def conf_ovn_bridges(config):
         "systemctl enable networking",
         "systemctl restart networking",
     ]
-    result = run_command(
+    
+    if not run_command(
         ["bash", "-c", " ; ".join(networking_restart_cmds)],
         "Restarting Networking service..."
-    )
-    if not result:
-        return False
+    ) : return False
 
     return True
 
@@ -264,6 +263,8 @@ def finalize(config):
     if not run_command(["systemctl", "enable", "--now", "ovn-controller"],
                        "Starting ovn-controller...", False, None, 3, 5):
         return False
+    
+    print()
     
     if service_exists("nova-api.service"):
         if not run_command(["systemctl", "restart", "nova-api"], "Restarting Nova API...", False, None, 3, 5): return False
