@@ -64,7 +64,7 @@ def init_parser(subparsers):
         type=str,
         default="caracal",
         dest="os_release",
-        help="The OpenStack release to install for deployment"
+        help="The OpenStack release to install for deployment (default: caracal)"
     )
 
     parser.add_argument(
