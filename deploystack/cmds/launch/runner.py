@@ -233,8 +233,8 @@ def create_server(name: str, image_id: str, flavor_id: str,
         return server_id
     
     except subprocess.CalledProcessError as e:
-        if server_id:
-            _run(["openstack", "server", "delete", server_id], False)
+         
+        _run(["openstack", "server", "delete", name], False)
 
         logger.error(f"{colors.RED}OpenStack server creation command failed: {e}{colors.RESET}\n\nFor more information about the error, please see the log: /var/log/nova/nova-compute.log")
         sys.exit(1) 
@@ -277,8 +277,7 @@ def create_server_with_password(
         return server_id
     
     except subprocess.CalledProcessError as e:
-        if server_id:
-            _run(["openstack", "server", "delete", server_id], False)
+        _run(["openstack", "server", "delete", name], False)
 
         logger.error(f"{colors.RED}OpenStack server creation command failed: {e}{colors.RESET}\n\nFor more information about the error, please see the log: /var/log/nova/nova-compute.log")
         sys.exit(1) 
