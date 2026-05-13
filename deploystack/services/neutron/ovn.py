@@ -366,37 +366,48 @@ def create_ovn_networks(config):
                 "public"],
                 "Creating public network..."
             )
+            
+            public_subnet_exists = any(sub.get("Name") == "public_subnet" for sub in subnets_list)
+            if not public_subnet_exists:
+                if not run_command(
+                    ["openstack", "subnet", "create",
+                    "--network", "public",
+                    "--allocation-pool", f"start={public_subnet_range_start},end={public_subnet_range_end}",
+                    "--gateway", public_subnet_gateway,
+                    "--subnet-range", public_subnet_cidr,
+                    "public_subnet"] + dns_args,
+                    "Creating public subnet..."
+                ) : return False
+            else:
+                print(f"{colors.YELLOW}Public subnet already exists, skipping creation.{colors.RESET}")
+
         elif net_type == "vlan":
             vlan_range = public_network.get("vlan_range")
             if vlan_range:
                 start, end = map(int, vlan_range.split(":"))
-                vlan_id = start
-                run_command(
-                    ["openstack", "network", "create",
-                    "--share", "--external",
-                    "--provider-physical-network", public_network["name"],
-                    "--provider-network-type", "vlan",
-                    "--provider-segment", str(vlan_id),
-                    "public"],
-                    f"Creating public network..."
-                )
+                for vlan_id in range(start, end + 1):
+                    network_name = f"public-{vlan_id}"
+                    run_command(
+                        ["openstack", "network", "create",
+                        "--share", "--external",
+                        "--provider-physical-network", public_network["name"],
+                        "--provider-network-type", "vlan",
+                        "--provider-segment", str(vlan_id),
+                        network_name],
+                        f"Creating public VLAN network {network_name}..."
+                    )
+                
+                    run_command(
+                    ["openstack", "subnet", "create",
+                    "--network", network_name,
+                    "--allocation-pool", f"start={public_subnet_range_start},end={public_subnet_range_end}",
+                    "--gateway", public_subnet_gateway,
+                    "--subnet-range", public_subnet_cidr] + dns_args + [f"{network_name}_subnet"],
+                    f"Creating subnet for {network_name}..."
+                    )
 
     else:
         print(f"{colors.YELLOW}Public network already exists, skipping creation.{colors.RESET}")
-
-    public_subnet_exists = any(sub.get("Name") == "public_subnet" for sub in subnets_list)
-    if not public_subnet_exists:
-        if not run_command(
-            ["openstack", "subnet", "create",
-            "--network", "public",
-            "--allocation-pool", f"start={public_subnet_range_start},end={public_subnet_range_end}",
-            "--gateway", public_subnet_gateway,
-            "--subnet-range", public_subnet_cidr,
-            "public_subnet"] + dns_args,
-            "Creating public subnet..."
-        ) : return False
-    else:
-        print(f"{colors.YELLOW}Public subnet already exists, skipping creation.{colors.RESET}")
 
     print()
 
