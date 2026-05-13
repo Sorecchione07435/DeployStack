@@ -398,14 +398,16 @@ def create_ovn_networks(config):
                     "Creating public network..."
                 ) : return False
 
-                if not run_command(
-                    ["openstack", "subnet", "create",
-                    "--network", "public",
-                    "--allocation-pool", f"start={public_subnet_range_start},end={public_subnet_range_end}",
-                    "--gateway", public_subnet_gateway,
-                    "--subnet-range", public_subnet_cidr] + dns_args + ["public_subnet"],
-                    "Creating public subnet..."
-                ) : return False
+                public_subnet_exists = any(sub.get("Name") == "public_subnet" for sub in subnets_list)
+                if not public_subnet_exists:
+                    if not run_command(
+                        ["openstack", "subnet", "create",
+                        "--network", "public",
+                        "--allocation-pool", f"start={public_subnet_range_start},end={public_subnet_range_end}",
+                        "--gateway", public_subnet_gateway,
+                        "--subnet-range", public_subnet_cidr] + dns_args + ["public_subnet"],
+                        "Creating public subnet..."
+                    ) : return False
     else:
         print(f"{colors.YELLOW}Public network already exists, skipping creation.{colors.RESET}")
 
@@ -476,20 +478,20 @@ def create_ovn_networks(config):
         for rule in rules
     )
     if not ssh_rule_exists:
-        run_command(
+        if not run_command(
             ["openstack", "security", "group", "rule", "create",
              "--proto", "tcp", "--dst-port", "22",
              "--remote-ip", "0.0.0.0/0", sg_id],
-            "Allowing SSH access...", True)
+            "Allowing SSH access...", True) : return False
     else:
         print(f"{colors.YELLOW}SSH rule already exists, skipping{colors.RESET}")
 
     icmp_rule_exists = any(rule.get("protocol") == "icmp" for rule in rules)
     if not icmp_rule_exists:
-        run_command(
+        if not run_command(
             ["openstack", "security", "group", "rule", "create",
              "--proto", "icmp", sg_id],
-            "Allowing ICMP (ping)...", True)
+            "Allowing ICMP (ping)...", True) : return False
     else:
         print(f"{colors.YELLOW}ICMP rule already exists, skipping{colors.RESET}")
 
