@@ -72,7 +72,7 @@ def get_default_image(preferred: str) -> str:
 
             return image_id
 
-    logger.error(f"No active image found with name '{preferred}'")
+    logger.error(f"{colors.RED}No active image found with name '{preferred}'{colors.RESET}")
     sys.exit(1)
 
 def get_default_flavor(preferred: str = DEFAULT_FLAVOR) -> str:
