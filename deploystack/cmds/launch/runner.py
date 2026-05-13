@@ -85,25 +85,13 @@ def get_default_flavor(preferred: str = DEFAULT_FLAVOR) -> str:
 
 
 def get_instance_ip(instance_name: str, network_name: str) -> str:
-    """Returns the IP of a VM on a specific network."""
-    result = _run([
-        "openstack", "server list",
-        "-f", "json"
-    ])
-    
+    result = _run(["openstack", "server list", "-f", "json"])
     servers = json.loads(result.stdout)
-
-    for server in servers:
-        if server["Name"] == instance_name:
-            # Check if the network exists
-            networks = server.get("Networks", {})
-            if network_name in networks and networks[network_name]:
-                return networks[network_name][0]
-            else:
-                raise RuntimeError(f"Network '{network_name}' has no IP for {instance_name}")
     
-    raise RuntimeError(f"Server '{instance_name}' not found")
-
+    for s in servers:
+        if s["Name"] == instance_name:
+            return s["Networks"].get(network_name, [None])[0]
+    return None
 
 def get_default_network(preferred: str | None = None) -> str:
     out = _os("network", "list", "-f", "value", "-c", "ID", "-c", "Name")
@@ -329,16 +317,15 @@ def print_summary(name: str, fip: str, key_path: str | None, is_password: bool,
         print(f"Attached Floating IP : {fip}\n")
 
     if os_type == "linux":
+        ssh_target = fip or ip_address
+
         if key_path:
-            ssh_cmd = f"ssh -i {key_path} {username}@{fip}"
+            ssh_cmd = f"ssh -i {key_path} {username}@{ssh_target}"
             print(f"You can connect to the instance with:\n  {ssh_cmd}\n")
         else:
-            if fip:
-                print(f"You can connect to the instance with:\n  ssh {username}@{fip}\n")
-            else:          
-                print(f"You can connect to the instance with:\n  ssh {username}@{ip_address}\n")
-
-            logger.info(f"{colors.YELLOW}specify your private key with -i if password auth is disabled.{colors.RESET}\n")
+            ssh_cmd = f"ssh {username}@{ssh_target}"
+            print(f"You can connect to the instance with:\n  {ssh_cmd}\n")
+            logger.info(f"{colors.YELLOW}Note: specify your private key with -i if password auth is disabled.{colors.RESET}\n")
 
     elif os_type == "windows":
         print(f"You can connect via RDP to: {fip}\n")
