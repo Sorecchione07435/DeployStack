@@ -66,8 +66,6 @@ def finalize():
 
 def create_default_flavors(config):
      
-    print()
-    
     ip_address = get(config, "network.HOST_IP")
 
     admin_password = get(config, "passwords.ADMIN_PASSWORD")
@@ -100,6 +98,8 @@ def create_default_flavors(config):
             cmds_to_run.append(cmd)
 
     if cmds_to_run:
+        print()
+    
         full_cmd = "set -e; " + " ; ".join(cmds_to_run)
         if not run_command(["bash", "-c", full_cmd], "Creating default flavors...") : return False
 
