@@ -92,8 +92,7 @@ def get_default_network(preferred: str | None = None) -> str:
         for net_id, net_name in lines:
             if preferred.lower() in net_name.lower():
                 if "public" in net_name.lower():
-                    logger.warning("Cannot use public network by default; falling back to internal")
-                    break
+                    logger.warning("The public network will be used, the floating IP assignment will be skipped")
                 return net_id
 
     for net_id, net_name in lines:
@@ -201,22 +200,30 @@ def create_server(name: str, image_id: str, flavor_id: str,
     """Create server and return its ID."""
     print(f"Launching instance '{name}' ...\n")
 
-    result = _run([
-        "openstack", "server", "create",
-        "--image",    image_id,
-        "--flavor",   flavor_id,
-        "--network",  network_id,
-        "--key-name", keypair_name,
-        "--wait",
-        "-f", "value", "-c", "id",
-        name
-    ])
-    server_id = result.stdout.strip()
-    if not server_id:
-        logger.error("Server creation failed:\n" + result.stderr)
-        sys.exit(1)
-    return server_id
+    try:
 
+        result = _run([
+            "openstack", "server", "create",
+            "--image",    image_id,
+            "--flavor",   flavor_id,
+            "--network",  network_id,
+            "--key-name", keypair_name,
+            "--wait",
+            "-f", "value", "-c", "id",
+            name
+        ])
+
+        server_id = result.stdout.strip()
+        if not server_id:
+            logger.error("Server creation failed:\n" + result.stderr)
+            sys.exit(1)
+
+        return server_id
+    
+    except subprocess.CalledProcessError as e:
+        _run(["openstack", "server", "delete", name], False)
+        logger.error(f"OpenStack server creation command failed: {e}\nOutput: {e.output}")
+        sys.exit(1) 
 
 def create_server_with_password(
     name: str,
@@ -389,10 +396,11 @@ def launch(
 
     wait_for_active(server_id)
 
-    fip = allocate_floating_ip(external_net)
+    if network != EXTERNAL_NET:
+        fip = allocate_floating_ip(external_net)
 
-    attach_floating_ip(server_id, fip)
-
+        attach_floating_ip(server_id, fip)
+    
     if password_enabled and password:
         print_summary(name, fip, key_path, True, os_admin_user, password, os_type)
     elif "cirros" in image_name:
