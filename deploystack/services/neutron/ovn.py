@@ -422,7 +422,7 @@ def create_ovn_networks(config):
     else:
         print(f"{colors.YELLOW}Internal network already exists, skipping creation.{colors.RESET}")
 
-    internal_subnet_exists = any(sub.get("Name") == "public_subnet" for sub in subnets_list)
+    internal_subnet_exists = any(sub.get("Name") == "internal_subnet" for sub in subnets_list)
     if not internal_subnet_exists:
         if not run_command(
             ["openstack", "subnet", "create",
