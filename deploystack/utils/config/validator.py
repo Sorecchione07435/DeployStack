@@ -145,7 +145,7 @@ def validate_neutron(config) -> bool:
 
     for net in networks:
         net_type = net["type"]
-        if net_type not in ["geneve", "flat"]:
+        if net_type not in ["geneve", "flat", "vlan"]:
             print(f"{colors.RED}Error: Invalid network type '{net_type}' specified in field {net}{colors.RESET}")
             ok = False
 
