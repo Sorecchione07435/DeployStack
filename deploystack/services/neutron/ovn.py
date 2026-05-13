@@ -395,7 +395,7 @@ def create_ovn_networks(config):
                     "--provider-network-type", "vlan",
                     "--provider-segment", str(vlan_id),
                     "public"],
-                    "Creating public VLAN network..."
+                    "Creating public network..."
                 )
 
                 run_command(
