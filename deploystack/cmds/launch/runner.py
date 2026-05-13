@@ -338,7 +338,7 @@ def print_summary(name: str, fip: str, key_path: str | None, is_password: bool,
             else:          
                 print(f"You can connect to the instance with:\n  ssh {username}@{ip_address}\n")
 
-            print(f"{colors.YELLOW}Note: specify your private key with -i if password auth is disabled.{colors.RESET}\n")
+            logger.info(f"{colors.YELLOW}specify your private key with -i if password auth is disabled.{colors.RESET}\n")
 
     elif os_type == "windows":
         print(f"You can connect via RDP to: {fip}\n")
