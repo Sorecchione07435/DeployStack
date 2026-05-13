@@ -330,6 +330,9 @@ def create_ovn_networks(config):
     ovn_public_bridge = get(config, "neutron.ovn.OVN_PUBLIC_BRIDGE")
     ovn_encap_type = get(config, "neutron.ovn.OVN_ENCAP_TYPE").lower()
 
+    provider_networks = get(config, "neutron.provider_networks", [])
+    public_network = next((n for n in provider_networks if n["name"] == "public"), None)
+
     dns_args = []
     for dns in public_subnet_dns_servers:
         dns_args.extend(["--dns-nameserver", dns])
@@ -352,14 +355,32 @@ def create_ovn_networks(config):
 
     public_network_exists = any(net.get("Name") == "public" for net in networks_list)
     if not public_network_exists:
-        if not run_command(
-            ["openstack", "network", "create",
-            "--share", "--external",
-            "--provider-physical-network", "public",
-            "--provider-network-type", "flat",
-            "public"],
-            "Creating public network..."
-        ) : return False
+
+        net_type = public_network.get("type", "flat")
+        if net_type == "flat":
+            run_command(
+                ["openstack", "network", "create",
+                "--share", "--external",
+                "--provider-physical-network", public_network["name"],
+                "--provider-network-type", "flat",
+                "public"],
+                "Creating public network..."
+            )
+        elif net_type == "vlan":
+            vlan_range = public_network.get("vlan_range")
+            if vlan_range:
+                start, end = map(int, vlan_range.split(":"))
+                vlan_id = start
+                run_command(
+                    ["openstack", "network", "create",
+                    "--share", "--external",
+                    "--provider-physical-network", public_network["name"],
+                    "--provider-network-type", "vlan",
+                    "--provider-segment", str(vlan_id),
+                    "public"],
+                    f"Creating public network..."
+                )
+
     else:
         print(f"{colors.YELLOW}Public network already exists, skipping creation.{colors.RESET}")
 
