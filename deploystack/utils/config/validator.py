@@ -149,7 +149,7 @@ def validate_neutron(config) -> bool:
             print(f"{colors.RED}Error: Invalid network type '{net_type}' specified in field {net}{colors.RESET}")
             ok = False
 
-    if tenant_type not in ["geneve", "flat"]:
+    if tenant_type not in ["geneve", "flat", "vxlan"]:
         print(f"{colors.RED}Error: Invalid network type '{tenant_type}' specified in field neutron.tenant_network.TYPE{colors.RESET}")
         ok = False
 
@@ -162,8 +162,6 @@ def validate_neutron(config) -> bool:
 
     if ovn_encap_type != tenant_type:
 
-        print(ovn_encap_type)
-        print(tenant_type)
         print(f"{colors.RED}Error: OVN_ENCAP_TYPE ({ovn_encap_type}) "
             f"does not match tenant network type ({tenant_type}).{colors.RESET}")
         ok = False    
