@@ -1,8 +1,9 @@
 from setuptools import setup, find_packages
 import sys
 
-if sys.platform.startswith("win"):
-    raise RuntimeError("This package is not supported on a Windows platform.")
+if sys.platform.startswith("win") or sys.platform == "darwin":
+    print("This package is not supported on Windows or macOS platforms.")
+    sys.exit(1)
 
 setup(
     name="DeployStack",

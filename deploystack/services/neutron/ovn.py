@@ -60,9 +60,9 @@ def conf_ovn_bridges(config):
     run_command(["ovs-vsctl", "--if-exists", "del-port", public_bridge, public_iface],
                 f"Removing port {public_iface} from {public_bridge}", ignore_errors=True)
     run_command(["ovs-vsctl", "--if-exists", "del-br", public_bridge],
-                f"Deleting bridge {public_bridge}", ignore_errors=True)
+                f"Deleting bridge {public_bridge} if exists", ignore_errors=True)
     run_command(["ovs-vsctl", "--if-exists", "del-br", internal_bridge],
-                f"Deleting bridge {internal_bridge}", ignore_errors=True)
+                f"Deleting bridge {internal_bridge} if exists", ignore_errors=True)
 
     if isinstance(subnet_address_dns_servers, list):
         subnet_address_dns_servers = " ".join(subnet_address_dns_servers)
@@ -200,10 +200,10 @@ def conf_ovn_neutron(config):
     ovn_sb_port = get(config, "neutron.ovn.OVN_SB_PORT")
     ovn_nb_port = get(config, "neutron.ovn.OVN_NB_PORT")
 
-    tenant_network_type = get(config, "neutron.tenant_network.TYPE", "geneve")
+    tenant_network_type = get(config, "neutron.tenant_network.TYPE", "geneve").lower()
     tenant_network_vni_range = get(config, "neutron.tenant_network.VNI_RANGE", "1:1000")
 
-    ovn_l3_scheduler = get(config, "neutron.ovn.OVN_L3_SCHEDULER", "leastloaded")
+    ovn_l3_scheduler = get(config, "neutron.ovn.OVN_L3_SCHEDULER", "leastloaded").lower()
     
     provider_networks = get(config, "neutron.provider_networks", [])
 
@@ -217,14 +217,20 @@ def conf_ovn_neutron(config):
 
     enable_distributed_floating_ip = get(config, "neutron.ovn.ENABLE_DISTRIBUTED_FLOATING_IP", "no") == "yes"
 
+    ovn_encap_type = get(config, "neutron.ovn.OVN_ENCAP_TYPE").lower()
+
     set_conf_option(conf_ml2, "ml2", "mechanism_drivers", "ovn")
-    set_conf_option(conf_ml2, "ml2", "type_drivers", "flat,vlan,geneve,local")
+    set_conf_option(conf_ml2, "ml2", "type_drivers", f"flat,vlan,geneve,local,{tenant_network_type}")
     set_conf_option(conf_ml2, "ml2", "tenant_network_types", tenant_network_type)
     set_conf_option(conf_ml2, "ml2", "extension_drivers", "port_security")
     set_conf_option(conf_ml2, "securitygroup", "enable_ipset", "true")
 
-    set_conf_option(conf_ml2, "ml2_type_geneve", "vni_ranges", tenant_network_vni_range)
-    set_conf_option(conf_ml2, "ml2_type_geneve", "max_header_size", "38")
+
+    if ovn_encap_type == "geneve":
+        set_conf_option(conf_ml2, "ml2_type_geneve", "vni_ranges", tenant_network_vni_range)
+        set_conf_option(conf_ml2, "ml2_type_geneve", "max_header_size", "38")
+    elif ovn_encap_type == "vxlan":
+        set_conf_option(conf_ml2, "ml2_type_vxlan", "vni_ranges", tenant_network_vni_range)
 
     if flat_networks_str:
         set_conf_option(conf_ml2, "ml2_type_flat", "flat_networks", flat_networks_str)
@@ -322,6 +328,7 @@ def create_ovn_networks(config):
     public_subnet_cidr = get(config, "public_network.PUBLIC_SUBNET_CIDR")
 
     ovn_public_bridge = get(config, "neutron.ovn.OVN_PUBLIC_BRIDGE")
+    ovn_encap_type = get(config, "neutron.ovn.OVN_ENCAP_TYPE").lower()
 
     dns_args = []
     for dns in public_subnet_dns_servers:
@@ -377,9 +384,9 @@ def create_ovn_networks(config):
         if not run_command(
             ["openstack", "network", "create",
             "--share",
-            "--provider-network-type", "geneve",
+            "--provider-network-type", ovn_encap_type,
             "internal"],
-            "Creating internal (geneve) network...") : return False
+            f"Creating internal ({ovn_encap_type}) network...") : return False
     else:
         print(f"{colors.YELLOW}Internal network already exists, skipping creation.{colors.RESET}")
 
@@ -403,11 +410,11 @@ def create_ovn_networks(config):
     if not router_exists:
         if not run_command(
             ["openstack", "router", "create", "internal_router"],
-            "Creating router...") : return False
+            "Creating internal router...") : return False
 
         if not run_command(
             ["openstack", "router", "set", "internal_router", "--external-gateway", "public"],
-            "Setting external gateway...") : return False
+            "Setting external gateway for internal router...") : return False
         
         print()
 
