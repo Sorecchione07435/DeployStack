@@ -6,7 +6,7 @@ import sys
 import uuid
 
 from .utils.core import colors
-from .cli import build_parser, COMMANDS
+from .cli import build_parser, cmds
 
 def print_banner():
     print(f"{colors.BRIGHT_BLUE}Welcome to DeployStack Utility{colors.RESET}\n")
@@ -29,4 +29,4 @@ def main():
         print(f"\nTip: Run '{colors.BRIGHT_BLUE}deploystack <command> --help{colors.RESET}' for detailed usage of each command.")
         sys.exit(1)
 
-    COMMANDS[args.command](parser, args)
+    cmds[args.command](parser, args)

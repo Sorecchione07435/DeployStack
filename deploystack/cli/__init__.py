@@ -32,7 +32,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     return parser
 
-COMMANDS = {
+cmds = {
     "generate-config": generate_config,
     "deploy":          deploy,
     "launch":          launch,
