@@ -220,7 +220,7 @@ def conf_ovn_neutron(config):
     ovn_encap_type = get(config, "neutron.ovn.OVN_ENCAP_TYPE").lower()
 
     set_conf_option(conf_ml2, "ml2", "mechanism_drivers", "ovn")
-    set_conf_option(conf_ml2, "ml2", "type_drivers", f"flat,vlan,geneve,local,{tenant_network_type}")
+    set_conf_option(conf_ml2, "ml2", "type_drivers", f"flat,vlan,local,{tenant_network_type}")
     set_conf_option(conf_ml2, "ml2", "tenant_network_types", tenant_network_type)
     set_conf_option(conf_ml2, "ml2", "extension_drivers", "port_security")
     set_conf_option(conf_ml2, "securitygroup", "enable_ipset", "true")
