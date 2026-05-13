@@ -101,7 +101,7 @@ def get_default_network(preferred: str | None = None) -> str:
         for net_id, net_name in lines:
             if preferred.lower() in net_name.lower():
                 if "public" in net_name.lower():
-                    logger.warning(f"{colors.YELLOW}The public network will be used, the floating IP assignment will be skipped{colors.RESET}\n")
+                    logger.warning(f"{colors.YELLOW}The {net_name} network will be used, the floating IP assignment will be skipped{colors.RESET}\n")
                 return net_id
 
     for net_id, net_name in lines:
@@ -269,6 +269,10 @@ def create_server_with_password(
             logger.error("Server creation failed:\n" + result.stderr)
             sys.exit(1)
         return server_id
+    except subprocess.CalledProcessError as e:
+        _run(["openstack", "server", "delete", name], False)
+        logger.error(f"OpenStack server creation command failed: {e}\nOutput: {e.output}")
+        sys.exit(1) 
 
     finally:
         if os.path.exists(config_drive_file_path):
@@ -325,12 +329,12 @@ def print_summary(name: str, fip: str, key_path: str | None, is_password: bool,
         else:
             ssh_cmd = f"ssh {username}@{ssh_target}"
             print(f"You can connect to the instance with:\n  {ssh_cmd}\n")
-            logger.info(f"{colors.YELLOW}Note: specify your private key with -i if password auth is disabled.{colors.RESET}\n")
+            logger.info(f"{colors.YELLOW}Specify your private key with -i if password auth is disabled.{colors.RESET}\n")
 
     elif os_type == "windows":
         print(f"You can connect via RDP to: {fip}\n")
-        print(
-            f"{colors.YELLOW}IMPORTANT: ensure that a security group rule is configured "
+        logger.warning(
+            f"{colors.YELLOW}Ensure that a security group rule is configured "
             f"to allow inbound TCP port 3389 (RDP) from your public IP or network."
             f"{colors.RESET}\n"
         )
@@ -377,10 +381,10 @@ def launch(
     instance_ip_address: str = None
 
     if " " in password:
-        print(f"{colors.RED}ERROR: Cloud-init password invalid: contains spaces{colors.RESET}")
+        logger.error(f"{colors.RED}Cloud-init password invalid: contains spaces{colors.RESET}")
         sys.exit(1)
     elif any(c in password for c in prohibited_pw_chars):
-        print(f"{colors.RED}ERROR: Cloud-init password invalid: illegal characters{colors.RESET}")
+        logger.error(f"{colors.RED}Cloud-init password invalid: illegal characters{colors.RESET}")
         sys.exit(1)
 
     if not keypair:
@@ -394,11 +398,11 @@ def launch(
 
     if "cirros" in image_name and password not in (None, ""):
         password_enabled = False
-        print(f"{colors.YELLOW}Info: CirrOS detected. Skipping password configuration (unsupported image).{colors.RESET}\n")
+        logger.info(f"{colors.YELLOW}CirrOS detected. Skipping password configuration (unsupported image).{colors.RESET}\n")
 
     elif (not os_type or not os_distro) and password not in (None, ""):
         password_enabled = False
-        print(f"{colors.YELLOW}Warning: Missing image metadata. Skipping password configuration for safety.{colors.RESET}\n")
+        logger.warning(f"{colors.YELLOW}Missing image metadata. Skipping password configuration for safety.{colors.RESET}\n")
 
     if password_enabled and password:
 
