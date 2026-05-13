@@ -383,6 +383,7 @@ def create_ovn_networks(config):
 
         elif net_type == "vlan":
             vlan_range = public_network.get("vlan_range")
+
             if vlan_range:
                 start = map(int, vlan_range.split(":"))
                 vlan_id = start
@@ -394,9 +395,9 @@ def create_ovn_networks(config):
                     "--provider-network-type", "vlan",
                     "--provider-segment", str(vlan_id),
                     "public"],
-                    "Creating public network..."
+                    "Creating public VLAN network..."
                 )
-                
+
                 run_command(
                     ["openstack", "subnet", "create",
                     "--network", "public",
