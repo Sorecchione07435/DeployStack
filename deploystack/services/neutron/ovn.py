@@ -384,28 +384,27 @@ def create_ovn_networks(config):
         elif net_type == "vlan":
             vlan_range = public_network.get("vlan_range")
             if vlan_range:
-                start, end = map(int, vlan_range.split(":"))
-                for vlan_id in range(start, end + 1):
-                    network_name = f"public-{vlan_id}"
-                    run_command(
-                        ["openstack", "network", "create",
-                        "--share", "--external",
-                        "--provider-physical-network", public_network["name"],
-                        "--provider-network-type", "vlan",
-                        "--provider-segment", str(vlan_id),
-                        network_name],
-                        f"Creating public VLAN network {network_name}..."
-                    )
+                start = map(int, vlan_range.split(":"))
+                vlan_id = start
+
+                run_command(
+                    ["openstack", "network", "create",
+                    "--share", "--external",
+                    "--provider-physical-network", public_network["name"],
+                    "--provider-network-type", "vlan",
+                    "--provider-segment", str(vlan_id),
+                    "public"],
+                    "Creating public network..."
+                )
                 
-                    run_command(
+                run_command(
                     ["openstack", "subnet", "create",
-                    "--network", network_name,
+                    "--network", "public",
                     "--allocation-pool", f"start={public_subnet_range_start},end={public_subnet_range_end}",
                     "--gateway", public_subnet_gateway,
-                    "--subnet-range", public_subnet_cidr] + dns_args + [f"{network_name}_subnet"],
-                    f"Creating subnet for {network_name}..."
-                    )
-
+                    "--subnet-range", public_subnet_cidr] + dns_args + ["public_subnet"],
+                    "Creating public subnet..."
+                )
     else:
         print(f"{colors.YELLOW}Public network already exists, skipping creation.{colors.RESET}")
 
