@@ -496,11 +496,11 @@ def create_ovn_networks(config):
 
 def run_setup_ovn_neutron(config):
 
-    tenant_type = get(config, "neutron.tenant_network.TYPE", "geneve")
-    if tenant_type != "geneve":
-        print(f"\n{colors.YELLOW}Warning: OVN only supports 'geneve' as tenant network type. "
-              f"Overriding '{tenant_type}' with 'geneve'.{colors.RESET}")
-        config["neutron"]["tenant_network"]["TYPE"] = "geneve"
+    #tenant_type = get(config, "neutron.tenant_network.TYPE", "geneve")
+    #if tenant_type != "geneve":
+    #    print(f"\n{colors.YELLOW}Warning: OVN only supports 'geneve' as tenant network type. "
+    #          f"Overriding '{tenant_type}' with 'geneve'.{colors.RESET}")
+    #    config["neutron"]["tenant_network"]["TYPE"] = "geneve"
 
     config_ovn_bridges = get(config, "neutron.ovn.CREATE_BRIDGES", "no") == "yes"
 
