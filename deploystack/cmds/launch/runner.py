@@ -207,6 +207,9 @@ def generate_user_config(ostype: str, default_user: str, password: str,
 def create_server(name: str, image_id: str, flavor_id: str,
                   network_id: str, keypair_name: str) -> str:
     """Create server and return its ID."""
+
+    server_id: str = None
+
     print(f"Launching instance '{name}' ...\n")
 
     try:
@@ -249,6 +252,7 @@ def create_server_with_password(
 ) -> str:
     """Create server with cloud-init user config and return its ID."""
     config_drive_file_path = generate_user_config(os_type, username, password, public_key)
+    server_id: str = None
 
     print(f"Launching instance '{name}' ...\n")
 
