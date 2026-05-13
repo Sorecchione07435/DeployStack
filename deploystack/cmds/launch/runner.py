@@ -325,7 +325,7 @@ def print_summary(name: str, fip: str, key_path: str | None, is_password: bool,
 
     print(f"{colors.GREEN}Instance '{name}' successfully started{colors.RESET}\n")
 
-    if fip != "None":
+    if fip:
         print(f"Attached Floating IP : {fip}\n")
 
     if os_type == "linux":
@@ -333,10 +333,9 @@ def print_summary(name: str, fip: str, key_path: str | None, is_password: bool,
             ssh_cmd = f"ssh -i {key_path} {username}@{fip}"
             print(f"You can connect to the instance with:\n  {ssh_cmd}\n")
         else:
-            if fip != "None":
+            if fip:
                 print(f"You can connect to the instance with:\n  ssh {username}@{fip}\n")
-            else:
-                
+            else:          
                 print(f"You can connect to the instance with:\n  ssh {username}@{ip_address}\n")
 
             print(f"{colors.YELLOW}Note: specify your private key with -i if password auth is disabled.{colors.RESET}\n")
@@ -388,7 +387,7 @@ def launch(
     password_enabled = True
 
     fip: str = None
-    instance_ip_address = None
+    instance_ip_address: str = None
 
     if " " in password:
         print(f"{colors.RED}ERROR: Cloud-init password invalid: contains spaces{colors.RESET}")
