@@ -358,14 +358,14 @@ def create_ovn_networks(config):
 
         net_type = public_network.get("type", "flat")
         if net_type == "flat":
-            run_command(
+            if not run_command(
                 ["openstack", "network", "create",
                 "--share", "--external",
                 "--provider-physical-network", public_network["name"],
                 "--provider-network-type", "flat",
                 "public"],
                 "Creating public network..."
-            )
+            ) : return False
             
             public_subnet_exists = any(sub.get("Name") == "public_subnet" for sub in subnets_list)
             if not public_subnet_exists:
@@ -385,10 +385,10 @@ def create_ovn_networks(config):
             vlan_range = public_network.get("vlan_range")
 
             if vlan_range:
-                start = map(int, vlan_range.split(":"))
+                start, _ = map(int, vlan_range.split(":")) 
                 vlan_id = start
 
-                run_command(
+                if not run_command(
                     ["openstack", "network", "create",
                     "--share", "--external",
                     "--provider-physical-network", public_network["name"],
@@ -396,16 +396,16 @@ def create_ovn_networks(config):
                     "--provider-segment", str(vlan_id),
                     "public"],
                     "Creating public network..."
-                )
+                ) : return False
 
-                run_command(
+                if not run_command(
                     ["openstack", "subnet", "create",
                     "--network", "public",
                     "--allocation-pool", f"start={public_subnet_range_start},end={public_subnet_range_end}",
                     "--gateway", public_subnet_gateway,
                     "--subnet-range", public_subnet_cidr] + dns_args + ["public_subnet"],
                     "Creating public subnet..."
-                )
+                ) : return False
     else:
         print(f"{colors.YELLOW}Public network already exists, skipping creation.{colors.RESET}")
 
