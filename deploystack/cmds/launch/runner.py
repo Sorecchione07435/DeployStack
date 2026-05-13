@@ -359,6 +359,8 @@ def launch(
 
     password_enabled = True
 
+    fip: str = None
+
     if " " in password:
         print(f"{colors.RED}ERROR: Cloud-init password invalid: contains spaces{colors.RESET}")
         sys.exit(1)
