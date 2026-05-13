@@ -230,8 +230,10 @@ def create_server(name: str, image_id: str, flavor_id: str,
         return server_id
     
     except subprocess.CalledProcessError as e:
-        _run(["openstack", "server", "delete", name], False)
-        logger.error(f"OpenStack server creation command failed: {e}\nOutput: {e.output}")
+        if server_id:
+            _run(["openstack", "server", "delete", server_id], False)
+
+        logger.error(f"{colors.RED}OpenStack server creation command failed: {e}{colors.RESET}\n\nFor more information about the error, please see the log: /var/log/nova/nova-compute.log")
         sys.exit(1) 
 
 def create_server_with_password(
@@ -269,16 +271,18 @@ def create_server_with_password(
             logger.error("Server creation failed:\n" + result.stderr)
             sys.exit(1)
         return server_id
+    
     except subprocess.CalledProcessError as e:
-        _run(["openstack", "server", "delete", name], False)
-        logger.error(f"OpenStack server creation command failed: {e}\nOutput: {e.output}")
+        if server_id:
+            _run(["openstack", "server", "delete", server_id], False)
+
+        logger.error(f"{colors.RED}OpenStack server creation command failed: {e}{colors.RESET}\n\nFor more information about the error, please see the log: /var/log/nova/nova-compute.log")
         sys.exit(1) 
 
     finally:
         if os.path.exists(config_drive_file_path):
             base_dir = os.path.dirname(os.path.dirname(os.path.dirname(config_drive_file_path)))
             shutil.rmtree(base_dir, ignore_errors=True)
-
 
 def allocate_floating_ip(external_net: str = EXTERNAL_NET) -> str:
     """Allocate a floating IP and return its address."""
