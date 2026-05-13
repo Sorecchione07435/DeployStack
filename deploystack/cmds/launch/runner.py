@@ -84,6 +84,27 @@ def get_default_flavor(preferred: str = DEFAULT_FLAVOR) -> str:
     return out.splitlines()[0].split()[0] if out else "1"
 
 
+def get_instance_ip(instance_name: str, network_name: str) -> str:
+    """Returns the IP of a VM on a specific network."""
+    result = _run([
+        "openstack", "server list",
+        "-f", "json"
+    ])
+    
+    servers = json.loads(result.stdout)
+
+    for server in servers:
+        if server["Name"] == instance_name:
+            # Check if the network exists
+            networks = server.get("Networks", {})
+            if network_name in networks and networks[network_name]:
+                return networks[network_name][0]
+            else:
+                raise RuntimeError(f"Network '{network_name}' has no IP for {instance_name}")
+    
+    raise RuntimeError(f"Server '{instance_name}' not found")
+
+
 def get_default_network(preferred: str | None = None) -> str:
     out = _os("network", "list", "-f", "value", "-c", "ID", "-c", "Name")
     lines = [line.split(None, 1) for line in out.splitlines() if line.strip()]
@@ -92,7 +113,7 @@ def get_default_network(preferred: str | None = None) -> str:
         for net_id, net_name in lines:
             if preferred.lower() in net_name.lower():
                 if "public" in net_name.lower():
-                    logger.warning("The public network will be used, the floating IP assignment will be skipped")
+                    logger.warning(f"{colors.YELLOW}The public network will be used, the floating IP assignment will be skipped{colors.RESET}\n")
                 return net_id
 
     for net_id, net_name in lines:
@@ -298,19 +319,26 @@ def wait_for_active(server_id: str, timeout: int = 120) -> None:
 
 
 def print_summary(name: str, fip: str, key_path: str | None, is_password: bool,
-                  username: str, password: str, os_type: str) -> None:
+                  username: str, password: str, os_type: str, ip_address: str = None) -> None:
 
     os_type = (os_type or "").lower()
 
     print(f"{colors.GREEN}Instance '{name}' successfully started{colors.RESET}\n")
-    print(f"Attached Floating IP : {fip}\n")
+
+    if fip != "None":
+        print(f"Attached Floating IP : {fip}\n")
 
     if os_type == "linux":
         if key_path:
             ssh_cmd = f"ssh -i {key_path} {username}@{fip}"
             print(f"You can connect to the instance with:\n  {ssh_cmd}\n")
         else:
-            print(f"You can connect to the instance with:\n  ssh {username}@{fip}\n")
+            if fip != "None":
+                print(f"You can connect to the instance with:\n  ssh {username}@{fip}\n")
+            else:
+                
+                print(f"You can connect to the instance with:\n  ssh {username}@{ip_address}\n")
+
             print(f"{colors.YELLOW}Note: specify your private key with -i if password auth is disabled.{colors.RESET}\n")
 
     elif os_type == "windows":
@@ -360,6 +388,7 @@ def launch(
     password_enabled = True
 
     fip: str = None
+    instance_ip_address = None
 
     if " " in password:
         print(f"{colors.RED}ERROR: Cloud-init password invalid: contains spaces{colors.RESET}")
@@ -402,10 +431,12 @@ def launch(
         fip = allocate_floating_ip(external_net)
 
         attach_floating_ip(server_id, fip)
+    else:
+        instance_ip_address = get_instance_ip(name, network)
     
     if password_enabled and password:
-        print_summary(name, fip, key_path, True, os_admin_user, password, os_type)
+        print_summary(name, fip, key_path, True, os_admin_user, password, os_type, instance_ip_address)
     elif "cirros" in image_name:
-        print_summary(name, fip, key_path, False, "cirros", None, "linux")
+        print_summary(name, fip, key_path, False, "cirros", None, "linux", instance_ip_address)
     else:
-        print_summary(name, fip, key_path, False, os_admin_user, None, os_type)
+        print_summary(name, fip, key_path, False, os_admin_user, None, os_type, instance_ip_address)
