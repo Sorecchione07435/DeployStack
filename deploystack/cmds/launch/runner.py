@@ -10,7 +10,6 @@ from passlib.hash import sha512_crypt
 
 from ...utils.core import colors
 from ...templates import CLOUD_CONFIG_LINUX, CLOUD_CONFIG_LINUX_NO_ROOT
-from ...utils.core.commands import run_command, run_command_output
 
 from ..shell import _run, _os, _os_value, logger
 
@@ -110,7 +109,7 @@ def get_default_network(preferred: str | None = None) -> str:
     if preferred:
         for net_id, net_name in lines:
             if preferred.lower() in net_name.lower():
-                if "public" in net_name.lower():
+                if not DEFAULT_NETWORK in net_name.lower():
                     logger.warning(f"{colors.YELLOW}The {net_name} network will be used, the floating IP assignment will be skipped{colors.RESET}\n")
                 return net_id
 
@@ -124,7 +123,6 @@ def get_default_network(preferred: str | None = None) -> str:
 
     logger.error("No suitable internal network found. Cannot use public network by default.")
     sys.exit(1)
-
 
 def get_server_id(name: str) -> str:
     """Resolve server name to ID. Fails if multiple servers share the same name."""
@@ -204,8 +202,6 @@ def generate_user_config(ostype: str, default_user: str, password: str,
         content = windows_config_drive
     elif ostype == "linux":
         content = linux_config_drive
-    else:
-        raise ValueError("ostype must be 'windows' or 'linux'")
 
     file_path = os.path.join(openstack_path, "user_data")
     with open(file_path, "w", encoding="utf-8") as f:
@@ -266,7 +262,17 @@ def create_server_with_password(
     public_key: str = None,
 ) -> str:
     """Create server with cloud-init user config and return its ID."""
+
+    if os_type not in ("windows", "linux"):
+        logger.warning(
+        f"{colors.YELLOW}Invalid ostype '{os_type}' specified. "
+        f"Valid values are 'windows' or 'linux'. "
+        f"No config drive will be created for this VM.{colors.RESET}"
+    )
+        sys.exit(1)
+
     config_drive_file_path = generate_user_config(os_type, username, password, public_key)
+
     server_id: str = None
 
     print(f"Launching instance '{name}' ...\n")
