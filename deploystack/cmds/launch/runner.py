@@ -263,14 +263,6 @@ def create_server_with_password(
 ) -> str:
     """Create server with cloud-init user config and return its ID."""
 
-    if os_type not in ("windows", "linux"):
-        logger.warning(
-        f"{colors.YELLOW}Invalid ostype '{os_type}' specified. "
-        f"Valid values are 'windows' or 'linux'. "
-        f"No config drive will be created for this VM.{colors.RESET}"
-    )
-        sys.exit(1)
-
     config_drive_file_path = generate_user_config(os_type, username, password, public_key)
 
     server_id: str = None
@@ -436,6 +428,14 @@ def launch(
     elif (not os_type or not os_distro) and password not in (None, ""):
         password_enabled = False
         logger.warning(f"{colors.YELLOW}Missing image metadata. Skipping password configuration for safety.{colors.RESET}\n")
+
+    if os_type not in ("windows", "linux"):
+        password_enabled = False
+        logger.warning(
+        f"{colors.YELLOW}Invalid ostype '{os_type}' specified. "
+        f"Valid values are 'windows' or 'linux'. "
+        f"No config drive will be created for this VM.{colors.RESET}"
+    )
 
     if password_enabled and password:
 
