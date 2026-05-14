@@ -160,7 +160,7 @@ def validate_neutron(config) -> bool:
         print(f"{colors.RED}Error: neutron.tenant_network.TYPE not set{colors.RESET}")
         ok = False
 
-    if ovn_encap_type != tenant_type:
+    if ovn_encap_type != tenant_type and neutron_driver == "ovn":
 
         print(f"{colors.RED}Error: OVN_ENCAP_TYPE ({ovn_encap_type}) "
             f"does not match tenant network type ({tenant_type}).{colors.RESET}")
