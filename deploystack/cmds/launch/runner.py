@@ -83,6 +83,16 @@ def get_default_flavor(preferred: str = DEFAULT_FLAVOR) -> str:
             return parts[0]
     return out.splitlines()[0].split()[0] if out else "1"
 
+def delete_instance(instance_id: str):
+
+    try:
+        subprocess.run(
+            ["openstack", "server", "delete", instance_id],
+            check=True
+        )
+    except subprocess.CalledProcessError as e:
+            print(f"Error when deleting instance {instance_id}: {e}")
+
 
 def get_instance_ip(instance_name: str, network_name: str) -> str:
     result = _run(["openstack", "server list", "-f", "json"])
@@ -233,8 +243,15 @@ def create_server(name: str, image_id: str, flavor_id: str,
         return server_id
     
     except subprocess.CalledProcessError as e:
-         
-        _run(["openstack", "server", "delete", name], False)
+
+        out = subprocess.run("server", "list", "--long", "--status",  "ERROR",  "-f", "value", "-c", "ID", capture_output=True, text=True, check=True)
+
+        lines = [line.split(None, 1) for line in out.splitlines() if line.strip()]
+
+        for line in out.stdout.splitlines():
+            instance_id, instance_name = line.split(None, 1)
+            if name in instance_name:
+                 delete_instance(instance_id)
 
         logger.error(f"{colors.RED}OpenStack server creation command failed: {e}{colors.RESET}\n\nFor more information about the error, please see the log: /var/log/nova/nova-compute.log")
         sys.exit(1) 
@@ -277,7 +294,14 @@ def create_server_with_password(
         return server_id
     
     except subprocess.CalledProcessError as e:
-        _run(["openstack", "server", "delete", name], False)
+        out = subprocess.run("server", "list", "--long", "--status",  "ERROR",  "-f", "value", "-c", "ID", capture_output=True, text=True, check=True)
+
+        lines = [line.split(None, 1) for line in out.splitlines() if line.strip()]
+
+        for line in out.stdout.splitlines():
+            instance_id, instance_name = line.split(None, 1)
+            if name in instance_name:
+                 delete_instance(instance_id)
 
         logger.error(f"{colors.RED}OpenStack server creation command failed: {e}{colors.RESET}\n\nFor more information about the error, please see the log: /var/log/nova/nova-compute.log")
         sys.exit(1) 
