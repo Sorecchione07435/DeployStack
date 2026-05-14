@@ -434,7 +434,7 @@ def launch(
         logger.warning(
         f"{colors.YELLOW}Invalid ostype '{os_type}' specified. "
         f"Valid values are 'windows' or 'linux'. "
-        f"No config drive will be created for this VM.{colors.RESET}"
+        f"No config drive will be created for this VM.{colors.RESET}\n"
     )
 
     if password_enabled and password:
