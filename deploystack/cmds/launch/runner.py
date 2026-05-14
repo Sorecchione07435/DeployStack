@@ -290,7 +290,7 @@ def create_server_with_password(
         return server_id
     
     except subprocess.CalledProcessError as e:
-        out = subprocess.run(["openstack", "server", "list", "--long", "--status",  "ERROR",  "-f", "value", "-c", "ID"], capture_output=True, text=True, check=True)
+        out = subprocess.run(["openstack", "server", "list", "--long", "--status",  "ERROR",  "-f", "value", "-c", "ID", "-c", "Name"], capture_output=True, text=True, check=True)
 
         for line in out.stdout.splitlines():
             instance_id, instance_name = line.split(None, 1)
