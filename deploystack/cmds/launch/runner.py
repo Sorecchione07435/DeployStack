@@ -244,7 +244,7 @@ def create_server(name: str, image_id: str, flavor_id: str,
     
     except subprocess.CalledProcessError as e:
 
-        out = subprocess.run("server", "list", "--long", "--status",  "ERROR",  "-f", "value", "-c", "ID", capture_output=True, text=True, check=True)
+        out = subprocess.run(["server", "list", "--long", "--status",  "ERROR",  "-f", "value", "-c", "ID"], capture_output=True, text=True, check=True)
 
         for line in out.stdout.splitlines():
             instance_id, instance_name = line.split(None, 1)
@@ -292,8 +292,8 @@ def create_server_with_password(
         return server_id
     
     except subprocess.CalledProcessError as e:
-        out = subprocess.run("server", "list", "--long", "--status",  "ERROR",  "-f", "value", "-c", "ID", capture_output=True, text=True, check=True)
-        
+        out = subprocess.run(["server", "list", "--long", "--status",  "ERROR",  "-f", "value", "-c", "ID"], capture_output=True, text=True, check=True)
+
         for line in out.stdout.splitlines():
             instance_id, instance_name = line.split(None, 1)
             if name in instance_name:
