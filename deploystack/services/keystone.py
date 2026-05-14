@@ -3,8 +3,8 @@
 import os
 
 from ..utils.core.commands import run_command
-from ..utils.apt.apt import apt_install, apt_update
-from ..utils.config.parser import parse_config, get, resolve_vars
+from ..utils.apt.apt import apt_install
+from ..utils.config.parser import get
 from ..utils.config.setter import set_conf_option
 from ..utils.core.system_utils import nc_wait
 from ..utils.core import colors
