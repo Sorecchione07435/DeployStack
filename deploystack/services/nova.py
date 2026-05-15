@@ -64,6 +64,13 @@ def conf_nova(config):
 
     if install_cinder:
         set_conf_option(nova_conf, "cinder", "os_region_name", os_region_name)
+        set_conf_option(nova_conf, "cinder", "auth_url", f"http://{ip_address}:5000/v3")
+        set_conf_option(nova_conf, "cinder", "auth_type", "password")
+        set_conf_option(nova_conf, "cinder", "project_domain_name", "Default")
+        set_conf_option(nova_conf, "cinder", "user_domain_name", "Default")
+        set_conf_option(nova_conf, "cinder", "project_name", "service")
+        set_conf_option(nova_conf, "cinder", "username", "cinder")
+        set_conf_option(nova_conf, "cinder", "password", service_password)
 
     set_conf_option(nova_conf, "oslo_concurrency", "lock_path", "/var/lib/nova/tmp")
 
