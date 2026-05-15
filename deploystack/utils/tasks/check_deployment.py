@@ -167,6 +167,26 @@ if __name__ == "__main__":
 
     exit(0 if endpoint_result.ok else 1)
 
+def check_cinder_installed() -> bool:
+
+    if not is_package_installed(cinder_pkgs): return False
+
+    if not check_endpoint("volumev3"): return False
+
+    if not check_service_active(["cinder-scheduler", "cinder-volume", "tgt"]) : return False
+   
+    return True
+
+def is_cinder_installed() -> bool:
+
+    if not check_cinder_installed():
+        print(f"{colors.RED}Cinder service is not installed or not available.{colors.RESET}\n")
+        print(f"{colors.YELLOW}  • If you want block storage support, run 'deploystack deploy --allinone' or include Cinder in your deployment{colors.RESET}")
+        print(f"{colors.YELLOW}  • Alternatively, continue without Cinder, but volume-based features will not be available{colors.RESET}\n")
+        return False
+
+    return True   
+
 def is_openstack_ready() -> bool:
     
     base_check = check_deployment(include_endpoints=False)
