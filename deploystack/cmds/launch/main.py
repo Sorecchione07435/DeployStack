@@ -47,6 +47,13 @@ def init_parser(subparsers):
         help="Password for the admin instance user."
     )
 
+    parser.add_argument(
+        "--timeout",
+        default=100,
+        type=int,
+        help="Maximum time to wait for the operation to complete, in seconds (default: 100)."
+    )
+
     return parser
 
 def launch(parser, args) -> None:
@@ -58,4 +65,4 @@ def launch(parser, args) -> None:
     if not is_openstack_ready():
         sys.exit(1)
 
-    launch_instance(name=args.name, image=args.image, flavor=args.flavor, network=args.network, keypair=args.keypair, password=args.password)
+    launch_instance(name=args.name, image=args.image, flavor=args.flavor, network=args.network, keypair=args.keypair, password=args.password, timeout=args.timeout)

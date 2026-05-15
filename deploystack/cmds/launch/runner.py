@@ -379,7 +379,8 @@ def launch(
     keypair: str        = "",
     key_path: str       = SSH_KEY_PATH,
     external_net: str   = EXTERNAL_NET,
-    password: str       = ""
+    password: str       = "",
+    timeout: int        = 100
 ) -> None:
 
     prohibited_pw_chars = [' ', '$', '`', '\\']
@@ -448,7 +449,7 @@ def launch(
             name, image_id, flavor_id, network_id, keypair
         )
 
-    wait_for_active(server_id)
+    wait_for_active(server_id, timeout)
 
     if network != EXTERNAL_NET:
         fip = allocate_floating_ip(external_net)
