@@ -168,7 +168,7 @@ $passwordB64 = "{password_b64}"
 
 # Decodifica Base64
 $bytes = [System.Convert]::FromBase64String($passwordB64)
-$password = [System.Text.Encoding]::UTF8.GetString($bytes)
+$password = [System.Text.Encoding]::Unicode.GetString($bytes)
 
 # Converti in SecureString
 $secure = ConvertTo-SecureString $password -AsPlainText -Force
@@ -177,7 +177,7 @@ $secure = ConvertTo-SecureString $password -AsPlainText -Force
 Set-LocalUser -Name $username -Password $secure
 Set-LocalUser -Name $username -PasswordNeverExpires $true
 Enable-LocalUser -Name $username
-    """
+"""
 
     password_hash = sha512_crypt.hash(password)
 
