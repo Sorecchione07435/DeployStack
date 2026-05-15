@@ -9,7 +9,7 @@ def init_parser(subparsers):
         help="Create a new volume"
     )
 
-    group = parser.add_mutually_exclusive_group(required=True)
+    group = parser.add_mutually_exclusive_group(required=False)
     
     parser.add_argument(
         "--volume-name",
