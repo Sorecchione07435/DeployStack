@@ -169,9 +169,7 @@ if __name__ == "__main__":
 
 def check_cinder_installed() -> bool:
 
-    all_cinder_pkgs_installed = all(is_package_installed(pkg) for pkg in cinder_pkgs)
-
-    if not all_cinder_pkgs_installed: return False
+    if not all(is_package_installed(pkg) for pkg in cinder_pkgs): return False
 
     if not check_endpoint("volumev3"): return False
 
