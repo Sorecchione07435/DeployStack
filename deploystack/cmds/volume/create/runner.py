@@ -14,7 +14,7 @@ def mark_as_bootable(id: str):
 
     try:
         subprocess.run(set_bootable_cmd, capture_output=True, text=True, check=True)
-        logger.info(f"{colors.GREEN}Volume {id} marked as bootable successfully.{colors.RESET}")
+        logger.info(f"{colors.GREEN}Volume {id} marked as bootable successfully.{colors.RESET}\n")
 
     except subprocess.CalledProcessError as e:
             logger.error(f"{colors.RED}Error while trying to setting bootable attribute on volume: {e}{colors.RESET}")
