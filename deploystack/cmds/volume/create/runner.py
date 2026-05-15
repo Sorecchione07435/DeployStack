@@ -3,7 +3,7 @@ import sys
 
 from ....utils.core import colors
 
-from ...shell import _run, _os, _os_value, logger
+from ...shell import logger
 
 def mark_as_bootable(id: str):
 
