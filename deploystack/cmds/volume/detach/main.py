@@ -1,5 +1,7 @@
 import sys
 
+from .runner import detach as detach_volume
+
 from ....utils.tasks.check_deployment import is_openstack_ready, is_cinder_installed
 
 def init_parser(subparsers):
@@ -32,4 +34,9 @@ def detach(parser, args) -> None:
 
     if not is_cinder_installed():
         sys.exit(1)
+
+    detach_volume(
+        args.volume,
+        args.instance
+    )
 
