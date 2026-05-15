@@ -173,7 +173,7 @@ def check_cinder_installed() -> bool:
 
     if not check_endpoint("volumev3"): return False
 
-    if not check_service_active(["cinder-scheduler", "cinder-volume", "tgt"]) : return False
+    if not all(check_service_active(service) for service in ["cinder-scheduler", "cinder-volume", "tgt"]) : return False
    
     return True
 
