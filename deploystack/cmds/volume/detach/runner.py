@@ -122,15 +122,15 @@ def detach(
          
         sys.exit(1)
 
-    print(f"Detaching volume '{volume}' on instance '{instance}' ...\n\n")
+    print(f"Detaching volume '{volume}' on instance '{instance}' ...\n")
 
     detach_instance_volume(volume_id, instance_id)
 
-    print(f"Resetting volume '{volume}' status ...\n\n")
+    print(f"Resetting volume '{volume}' status ...\n")
 
     reset_volume_state(volume_id)
 
-    print(f"Marking volume '{volume}' as deleted ...\n\n")
+    print(f"Marking volume '{volume}' as deleted ...\n")
 
     mark_volume_deleted(volume_id, instance_id)
 
