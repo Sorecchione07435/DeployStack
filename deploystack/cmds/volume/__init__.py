@@ -1,6 +1,6 @@
-from .create import init_parser as create_init_parser
-from .attach import init_parser as attach_init_parser
-from .detach import init_parser as detach_init_parser
+from .create.main import init_parser as create_init_parser
+from .attach.main import init_parser as attach_init_parser
+from .detach.main import init_parser as detach_init_parser
 
 def init_parser(subparsers):
 
