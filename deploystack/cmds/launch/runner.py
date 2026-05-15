@@ -429,7 +429,7 @@ def launch(
         password_enabled = False
         logger.warning(f"{colors.YELLOW}Missing image metadata. Skipping password configuration for safety.{colors.RESET}\n")
 
-    if os_type not in ("windows", "linux") and password not in (None, ""):
+    elif os_type not in ("windows", "linux") and password not in (None, ""):
         password_enabled = False
         logger.warning(
         f"{colors.YELLOW}Invalid ostype '{os_type}' specified. "
