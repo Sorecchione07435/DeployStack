@@ -162,17 +162,21 @@ def generate_user_config(ostype: str, default_user: str, password: str,
 
     password_b64 = base64.b64encode(password.encode('utf-16-le')).decode('ascii')
 
-    windows_config_drive = f"""<powershell>
-    $username = "{default_user}"
-    $passwordB64 = "{password_b64}"
+    windows_config_drive = f"""# Parametri (da sostituire o interpolare nel template)
+$username = "{default_user}"
+$passwordB64 = "{password_b64}"
 
-    $bytes = [System.Convert]::FromBase64String($passwordB64)
-    $password = [System.Text.Encoding]::Unicode.GetString($bytes)
-    $secure = ConvertTo-SecureString $password -AsPlainText -Force
-    Set-LocalUser -Name $username -Password $secure
-    Set-LocalUser -Name $username -PasswordNeverExpires $true
-    Enable-LocalUser -Name $username
-    </powershell>
+# Decodifica Base64
+$bytes = [System.Convert]::FromBase64String($passwordB64)
+$password = [System.Text.Encoding]::UTF8.GetString($bytes)
+
+# Converti in SecureString
+$secure = ConvertTo-SecureString $password -AsPlainText -Force
+
+# Imposta la password e altre proprietà dell'utente locale
+Set-LocalUser -Name $username -Password $secure
+Set-LocalUser -Name $username -PasswordNeverExpires $true
+Enable-LocalUser -Name $username
     """
 
     password_hash = sha512_crypt.hash(password)
@@ -339,6 +343,7 @@ def print_summary(name: str, fip: str, key_path: str | None, is_password: bool,
                   username: str, password: str, os_type: str, ip_address: str = None) -> None:
 
     os_type = (os_type or "").lower()
+    ip = fip or ip_address
 
     print(f"{colors.GREEN}Instance '{name}' successfully started{colors.RESET}\n")
 
@@ -346,7 +351,7 @@ def print_summary(name: str, fip: str, key_path: str | None, is_password: bool,
         print(f"Attached Floating IP : {fip}\n")
 
     if os_type == "linux":
-        ssh_target = fip or ip_address
+        ssh_target = ip
 
         if key_path:
             ssh_cmd = f"ssh -i {key_path} {username}@{ssh_target}"
@@ -357,7 +362,8 @@ def print_summary(name: str, fip: str, key_path: str | None, is_password: bool,
             logger.info(f"{colors.YELLOW}Specify your private key with -i if password auth is disabled.{colors.RESET}\n")
 
     elif os_type == "windows":
-        print(f"You can connect via RDP to: {fip}\n")
+        print(f"You can connect via RDP to: {ip}\n")
+
         logger.warning(
             f"{colors.YELLOW}Ensure that a security group rule is configured "
             f"to allow inbound TCP port 3389 (RDP) from your public IP or network."
