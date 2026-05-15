@@ -102,7 +102,7 @@ def mark_volume_deleted(volume_id: str, instance_id: str):
 
     try:
         subprocess.run(cmd, capture_output=True, text=True, check=True)
-        logger.info(f"{colors.GREEN}Volume '{volume_id}' marked as deleted for instance '{instance_id}' in the database.{colors.RESET}\n")
+        logger.info(f"{colors.GREEN}Volume '{volume_id}' marked as removed for instance '{instance_id}' in the database.{colors.RESET}\n")
     except subprocess.CalledProcessError as e:
         logger.error(f"{colors.RED}Error while updating the database: {e}\n{e.stderr}{colors.RESET}")
         sys.exit(1)
@@ -130,7 +130,7 @@ def detach(
 
     reset_volume_state(volume_id)
 
-    print(f"Marking volume '{volume}' as deleted ...\n")
+    print(f"Marking volume '{volume}' as removed ...\n")
 
     mark_volume_deleted(volume_id, instance_id)
 

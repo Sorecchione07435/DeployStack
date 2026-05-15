@@ -12,13 +12,13 @@ def init_parser(subparsers):
     )
 
     parser.add_argument(
-        "--volume-name",
+        "--name",
         required=True,
         help="The name of the volume to create (required)"
     )
 
     parser.add_argument(
-        "--volume-size",
+        "--size",
         default=5,
         help="The size of the volume in GB (default: 5 GB)"
     )
@@ -47,8 +47,8 @@ def create(parser, args) -> None:
         sys.exit(1)
 
     create_volume(
-        args.volume_name,
-        args.volume_size,
+        args.name,
+        args.size,
         args.is_bootable,
         args.image
     )
