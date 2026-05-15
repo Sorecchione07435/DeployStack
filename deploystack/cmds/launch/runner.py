@@ -321,7 +321,7 @@ def attach_floating_ip(server_id: str, fip: str) -> None:
     _os("server", "add", "floating", "ip", server_id, fip)
 
 
-def wait_for_active(server_id: str, timeout: int = 120) -> None:
+def wait_for_active(server_id: str, timeout: int = 1000) -> None:
     """Poll server status by ID until ACTIVE or ERROR."""
     deadline = time.time() + timeout
     while time.time() < deadline:
