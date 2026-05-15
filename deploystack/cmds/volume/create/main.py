@@ -1,5 +1,7 @@
 import sys
 
+from .runner import create as create_volume
+
 from ....utils.tasks.check_deployment import is_openstack_ready, is_cinder_installed
 
 def init_parser(subparsers):
@@ -9,8 +11,6 @@ def init_parser(subparsers):
         help="Create a new volume"
     )
 
-    group = parser.add_mutually_exclusive_group(required=False)
-    
     parser.add_argument(
         "--volume-name",
         required=True,
@@ -29,16 +29,9 @@ def init_parser(subparsers):
         help="Mark the volume as bootable. Use this flag if the volume should be usable as a boot disk."
     )
 
-    group.add_argument(
-        "--image-id",
-        dest="image_id",
-        help="Glance Image ID. One of --image-id or --image-name must be provided."
-    )
-
-    group.add_argument(
-        "--image-name",
-        dest="image_name",
-        help="Glance Image Name. One of --image-id or --image-name must be provided."
+    parser.add_argument(
+        "--image",
+        help="Optional Glance image ID or name to create the volume from."
     )
 
 def create(parser, args) -> None:
@@ -52,5 +45,13 @@ def create(parser, args) -> None:
 
     if not is_cinder_installed():
         sys.exit(1)
+
+    create_volume(
+        args.volume_name,
+        args.volume_size,
+        args.is_bootable,
+        args.image
+    )
+
 
         

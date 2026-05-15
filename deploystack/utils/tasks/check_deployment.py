@@ -169,7 +169,9 @@ if __name__ == "__main__":
 
 def check_cinder_installed() -> bool:
 
-    if not is_package_installed(cinder_pkgs): return False
+    all_cinder_pkgs_installed = all(is_package_installed(["dpkg", "-s", pkg]) for pkg in ["cinder-api", "cinder-scheduler", "cinder-volume", "tgt"])
+
+    if not all_cinder_pkgs_installed: return False
 
     if not check_endpoint("volumev3"): return False
 
