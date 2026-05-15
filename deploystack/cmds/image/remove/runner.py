@@ -1,15 +1,9 @@
 import subprocess
 import time
 import sys
-import re
 
-from ...shell import _run
+from ...shell import _run, is_uuid
 from ....utils.core import colors
-
-
-def is_uuid(identifier) -> bool:
-    uuid_regex = r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-    return bool(re.fullmatch(uuid_regex, identifier.lower()))
 
 def get_image_name_from_uuid(uuid) -> str:
 

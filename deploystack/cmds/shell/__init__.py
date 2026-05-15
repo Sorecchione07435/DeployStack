@@ -1,6 +1,7 @@
 import subprocess
 import sys
 import logging
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -26,3 +27,6 @@ def _os_value(*args) -> str:
     result = _run(["openstack"] + list(args) + ["-f", "value"])
     return result.stdout.strip().splitlines()[0] if result.stdout.strip() else ""
 
+def is_uuid(identifier) -> bool:
+    uuid_regex = r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+    return bool(re.fullmatch(uuid_regex, identifier.lower()))
