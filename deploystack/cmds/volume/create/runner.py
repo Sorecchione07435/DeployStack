@@ -64,7 +64,7 @@ def create(
     if is_bootable and image:
         logger.warning(
             f"{colors.YELLOW}The --is-bootable flag is redundant when creating a volume from an image; "
-            f"the volume will automatically be bootable.{colors.RESET}"
+            f"the volume will automatically be bootable.{colors.RESET}\n"
         )
 
     print(f"Creating the volume '{volume_name}' ...\n")
