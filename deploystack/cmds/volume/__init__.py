@@ -1,6 +1,7 @@
 from .create.main import init_parser as create_init_parser
 from .attach.main import init_parser as attach_init_parser
 from .detach.main import init_parser as detach_init_parser
+from .remove.main import init_parser as remove_init_parser
 
 def init_parser(subparsers):
 
@@ -18,6 +19,7 @@ def init_parser(subparsers):
     create_init_parser(volume_subparsers)
     attach_init_parser(volume_subparsers)
     detach_init_parser(volume_subparsers)
+    remove_init_parser(volume_subparsers)
 
 def volume(parser, args) -> None:
 
@@ -30,3 +32,6 @@ def volume(parser, args) -> None:
     elif args.volume_cmd == "detach":
         from .detach.main import detach
         detach(parser, args)
+    elif args.volume_cmd == "remove":
+        from .remove.main import remove
+        remove(parser, args)
