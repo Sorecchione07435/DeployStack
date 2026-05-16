@@ -1,6 +1,7 @@
 import subprocess
 import time
 import sys
+import json
 
 from ...shell import _run, is_uuid, logger
 from ....utils.core import colors
@@ -45,6 +46,30 @@ def get_volume_id_from_name(name) -> str:
 
     except subprocess.CalledProcessError as e:
         logger.error(f"{colors.RED}Error while trying to getting volume ID: {e}{colors.RESET}\n")
+        sys.exit(1)
+
+def check_volume_attached(volume: str):
+    cmd = [
+        "openstack", "volume", "show", volume,
+        "-f", "json", "-c", "attachments"
+    ]
+
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        attachments = json.loads(result.stdout)["attachments"]
+
+        if attachments:
+            attached_to = ", ".join(a['server_id'] for a in attachments)
+            logger.warning(f"{colors.YELLOW}Volume '{volume}' is attached to instances: {attached_to}{colors.RESET}")
+            sys.exit(1)
+        else:
+            return
+        
+    except subprocess.CalledProcessError as e:
+        logger.error(f"{colors.RED}Error while trying to list volume info: {e}\n{e.stderr}{colors.RESET}")
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        logger.error(f"{colors.RED}Failed to parse JSON output: {e}{colors.RESET}")
         sys.exit(1)
 
 def check_image_running_instances(identifier: str) -> bool:
@@ -108,11 +133,10 @@ def remove(
     volume_id = volume if is_uuid(volume) else get_volume_id_from_name(volume)
     
     volume_identifier = volume_id
-    print(f"Removing image with Name: {volume} ...")
 
-    if check_image_running_instances(volume_identifier):
-        print(f"\n{colors.RED}Error: There are instances still running with the '{volume}' image. Please terminate them before attempting removal.{colors.RESET}")
-        sys.exit(1)
+    check_volume_attached(volume_identifier)
+
+    print(f"Removing volume '{volume}' ...\n")
 
     if remove_volume(volume_identifier, timeout):
         print(f"\n{colors.GREEN}Volume '{volume}' successfully deleted{colors.RESET}")
