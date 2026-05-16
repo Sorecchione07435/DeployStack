@@ -1,6 +1,6 @@
 import sys
 
-from .runner import detach as detach_volume
+from .runner import remove as remove_volume
 
 from ....utils.tasks.check_deployment import is_openstack_ready, is_cinder_installed
 
@@ -36,5 +36,7 @@ def remove(parser, args) -> None:
 
     if not is_cinder_installed():
         sys.exit(1)
+
+    remove_volume(args.volume, args.timeout)
 
 

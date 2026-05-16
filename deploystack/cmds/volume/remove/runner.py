@@ -101,21 +101,21 @@ def remove_volume(identifier: str, timeout: int = 30) -> bool:
         time.sleep(min(2, remaining))
 
 def remove(
-        image: str,
+        volume: str,
         timeout: int
 ):
     
-    volume_id = image if is_uuid(image) else get_volume_id_from_name(image)
+    volume_id = volume if is_uuid(volume) else get_volume_id_from_name(volume)
     
     volume_identifier = volume_id
-    print(f"Removing image with Name: {image} ...")
+    print(f"Removing image with Name: {volume} ...")
 
     if check_image_running_instances(volume_identifier):
-        print(f"\n{colors.RED}Error: There are instances still running with the '{image}' image. Please terminate them before attempting removal.{colors.RESET}")
+        print(f"\n{colors.RED}Error: There are instances still running with the '{volume}' image. Please terminate them before attempting removal.{colors.RESET}")
         sys.exit(1)
 
     if remove_volume(volume_identifier, timeout):
-        print(f"\n{colors.GREEN}Volume '{image}' successfully deleted{colors.RESET}")
+        print(f"\n{colors.GREEN}Volume '{volume}' successfully deleted{colors.RESET}")
     else:
         sys.exit(1)
 
