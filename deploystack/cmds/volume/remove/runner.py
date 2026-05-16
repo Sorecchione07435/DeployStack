@@ -139,7 +139,7 @@ def remove(
     print(f"Removing volume '{volume}' ...\n")
 
     if remove_volume(volume_identifier, timeout):
-        print(f"\n{colors.GREEN}Volume '{volume}' successfully deleted{colors.RESET}")
+        print(f"{colors.GREEN}Volume '{volume}' successfully deleted{colors.RESET}")
     else:
         sys.exit(1)
 
