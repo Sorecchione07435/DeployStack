@@ -1,4 +1,5 @@
 import sys
+import uuid
 
 from .runner import create as create_volume
 
@@ -13,8 +14,8 @@ def init_parser(subparsers):
 
     parser.add_argument(
         "--name",
-        required=True,
-        help="The name of the volume to create (required)"
+        default=f"volume-{uuid.uuid4().hex[:8]}",
+        help="The name of the volume to create"
     )
 
     parser.add_argument(

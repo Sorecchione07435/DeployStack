@@ -10,18 +10,10 @@ def init_parser(subparsers):
         help="Delete an existing image in the cloud"
     )
 
-    group = parser.add_mutually_exclusive_group(required=True)
-
-    group.add_argument(
-        "--image-id",
-        dest="image_id",
-        help="Glance Image ID"
-    )
-
-    group.add_argument(
-        "--image-name",
-        dest="image_name",
-        help="Glance Image Name"
+    parser.add_argument(
+        "--image",
+        dest="image",
+        help="Glance Image Name or ID"
     )
 
     parser.add_argument(
@@ -41,9 +33,6 @@ def remove(parser, args) -> None:
     if not is_openstack_ready():
         sys.exit(1)
 
-    if args.image_id:
-        remove_image(None, args.image_id, args.timeout)
-    elif args.image_name:
-        remove_image(args.image_name, None, args.timeout)
+    remove_image(args.image, None, args.timeout)
 
    

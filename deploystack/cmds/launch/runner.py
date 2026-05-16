@@ -130,7 +130,6 @@ def get_server_id(name: str) -> str:
               "-f", "value", "-c", "ID", "-c", "Name")
     matches = [line.split(None, 1) for line in out.splitlines() if line.strip()]
 
-    # Filter exact name matches (--name uses regex, so double-check)
     exact = [srv_id for srv_id, srv_name in matches if srv_name.strip() == name]
 
     if not exact:
@@ -162,7 +161,7 @@ def generate_user_config(ostype: str, default_user: str, password: str,
 
     password_b64 = base64.b64encode(password.encode('utf-16-le')).decode('ascii')
 
-    windows_config_drive = f"""# Parametri (da sostituire o interpolare nel template)
+    windows_config_drive = f"""
 $username = "{default_user}"
 $passwordB64 = "{password_b64}"
 
@@ -170,10 +169,8 @@ $passwordB64 = "{password_b64}"
 $bytes = [System.Convert]::FromBase64String($passwordB64)
 $password = [System.Text.Encoding]::Unicode.GetString($bytes)
 
-# Converti in SecureString
 $secure = ConvertTo-SecureString $password -AsPlainText -Force
 
-# Imposta la password e altre proprietà dell'utente locale
 Set-LocalUser -Name $username -Password $secure
 Set-LocalUser -Name $username -PasswordNeverExpires $true
 Enable-LocalUser -Name $username
